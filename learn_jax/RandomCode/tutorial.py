@@ -1,19 +1,32 @@
 # jax version: '0.2.24'
 
-from jax import grad
 import jax.numpy as jnp
+from jax import grad, jit, vmap
+from jax import random
 
 
-def tanh(x):  # Define a function
-    y = jnp.exp(-2.0 * x)
-    return (1.0 - y) / (1.0 + y)
+def func(W, b):
+    out = 0
+    for w in W:
+        if w < b:
+            out += w
+        else:
+            out += w * 0.5
+    return out
 
 
-def main():
-    grad_tanh = grad(tanh)  # Obtain its gradient function
-    print(grad_tanh(1.0))  # Evaluate it at x = 1.0
-    # prints 0.4199743
+key = random.PRNGKey(0)
+key, W_key, b_key = random.split(key, 3)
+W = jnp.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+b = jnp.array([0.5])
 
+# W_grad, b_grad = grad(func, argnums=(0, 1))(W, b)
 
-if __name__ == '__main__':
-    main()
+val = func(W, b)
+# print(val)
+df_dW = grad(func, argnums=0)
+df_db = grad(func, argnums=1)
+
+print(df_dW(W, b))
+print(df_db(W, b))  # should not be zero
+
