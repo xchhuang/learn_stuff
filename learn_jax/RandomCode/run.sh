@@ -7,7 +7,7 @@
 
 mkdir -p slurm_outputs
 
-cuda_version=10.1
+cuda_version=11.3
 export PATH=/usr/lib/cuda-${cuda_version}/bin/:${PATH}
 export LD_LIBRARY_PATH=/usr/lib/cuda-${cuda_version}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 export CUDA_PATH=/usr/lib/cuda-${cuda_version}/
