@@ -1,16 +1,18 @@
 # jax version: '0.2.24'
 
+from jax import grad
 import jax.numpy as jnp
-from jax import grad, jit, vmap
-from jax import random
+
+
+def tanh(x):  # Define a function
+    y = jnp.exp(-2.0 * x)
+    return (1.0 - y) / (1.0 + y)
 
 
 def main():
-    key = random.PRNGKey(0)
-    x = random.normal(key, (10,))
-    size = 3000
-    x = random.normal(key, (size, size), dtype=jnp.float32)
-    %timeit jnp.dot(x, x.T).block_until_ready()  # runs on the GPU
+    grad_tanh = grad(tanh)  # Obtain its gradient function
+    print(grad_tanh(1.0))  # Evaluate it at x = 1.0
+    # prints 0.4199743
 
 
 if __name__ == '__main__':
