@@ -12,6 +12,6 @@ export CUDA_PATH=/usr/lib/cuda-${cuda_version}/
 
 mkdir build
 cd build
-cmake -DCMAKE_CUDA_FLAGS=”-arch=sm_30” ..
+cmake ..
 make
 
