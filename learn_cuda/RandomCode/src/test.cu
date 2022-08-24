@@ -4,8 +4,8 @@
 // function to add the elements of two arrays
 __global__ void add(int n, float* x, float* y)
 {
-    int index = threadIdx.x;
-    int stride = blockDim.x;
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
     for (int i = index; i < n; i += stride)
         y[i] = x[i] + y[i];
 }
@@ -13,7 +13,7 @@ __global__ void add(int n, float* x, float* y)
 int main(void)
 {
     int N = 1 << 20; // 1M elements
-    std::cout << "N: " << N << std::endl;
+    // std::cout << "N: " << N << std::endl;
     float* x, * y;
     cudaMallocManaged(&x, N * sizeof(float));
     cudaMallocManaged(&y, N * sizeof(float));
@@ -26,7 +26,10 @@ int main(void)
     }
 
     // Run kernel on 1M elements on the CPU
-    add <<< 1, 256 >>> (N, x, y);
+    int blockSize = 256;
+    int numBlocks = (N + blockSize - 1) / blockSize;
+    // std::cout << "blockSize: " << blockSize << ", numBlocks: " << numBlocks << std::endl;
+    add <<< numBlocks, blockSize >>> (N, x, y);
 
     cudaDeviceSynchronize();
 
