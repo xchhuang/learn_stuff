@@ -17,7 +17,7 @@ export CUDA_PATH=/usr/lib/cuda-${cuda_version}/
 # make
 
 
-nvcc test.cu -o test_cuda
-nvprof ./test_cuda
+nvcc add.cu -o add_cuda
+nvprof ./add_cuda
 
 
