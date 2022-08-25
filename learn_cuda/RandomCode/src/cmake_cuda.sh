@@ -17,7 +17,6 @@ export CUDA_PATH=/usr/lib/cuda-${cuda_version}/
 # make
 
 
-nvidia-smi
 nvcc test.cu -o test_cuda
 nvprof ./test_cuda
 
