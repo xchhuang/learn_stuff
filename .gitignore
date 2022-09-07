@@ -46,3 +46,6 @@ resources/*
 PT
 PT/*
 */PT/*
+mnist
+mnist/*
+*/mnist/*
