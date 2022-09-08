@@ -14,6 +14,7 @@
 
 import numpy as np
 import pylab
+from tqdm import tqdm
 
 
 def Hbeta(D=np.array([]), beta=1.0):
@@ -55,7 +56,7 @@ def x2p(X=np.array([]), tol=1e-5, perplexity=30.0):
         # Compute the Gaussian kernel and entropy for the current precision
         betamin = -np.inf
         betamax = np.inf
-        Di = D[i, np.concatenate((np.r_[0:i], np.r_[i+1:n]))]
+        Di = D[i, np.concatenate((np.r_[0:i], np.r_[i + 1:n]))]
         (H, thisP) = Hbeta(Di, beta[i])
 
         # Evaluate whether the perplexity is within tolerance
@@ -83,7 +84,7 @@ def x2p(X=np.array([]), tol=1e-5, perplexity=30.0):
             tries += 1
 
         # Set the final row of P
-        P[i, np.concatenate((np.r_[0:i], np.r_[i+1:n]))] = thisP
+        P[i, np.concatenate((np.r_[0:i], np.r_[i + 1:n]))] = thisP
 
     # Return final P-matrix
     print("Mean value of sigma: %f" % np.mean(np.sqrt(1 / beta)))
@@ -136,11 +137,11 @@ def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
     P = x2p(X, 1e-5, perplexity)
     P = P + np.transpose(P)
     P = P / np.sum(P)
-    P = P * 4.									# early exaggeration
+    P = P * 4.  # early exaggeration
     P = np.maximum(P, 1e-12)
 
     # Run iterations
-    for iter in range(max_iter):
+    for iter in tqdm(range(max_iter)):
 
         # Compute pairwise affinities
         sum_Y = np.sum(np.square(Y), 1)
@@ -180,11 +181,21 @@ def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
     return Y
 
 
-if __name__ == "__main__":
+def main():
     print("Run Y = tsne.tsne(X, no_dims, perplexity) to perform t-SNE on your dataset.")
     print("Running example on 2,500 MNIST digits...")
     X = np.loadtxt("mnist2500_X.txt")
     labels = np.loadtxt("mnist2500_labels.txt")
+    X = np.load('D:/xhuang/phd/repo/deepsampling/src/scripts/results_cluster/results_v4_latent_n1000/features_vgg_v19.npz')['features'].astype(np.float32)
+
     Y = tsne(X, 2, 50, 20.0)
-    pylab.scatter(Y[:, 0], Y[:, 1], 20, labels)
+    print('Y:', Y.shape)
+    # pylab.scatter(Y[:, 0], Y[:, 1], 20, labels)
+    pylab.scatter(Y[:, 0], Y[:, 1], 20)
     pylab.show()
+
+    return
+
+
+if __name__ == "__main__":
+    main()
