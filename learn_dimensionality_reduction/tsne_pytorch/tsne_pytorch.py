@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -79,10 +80,13 @@ def x2p(X=np.array([]), tol=1e-5, perplexity=30.0):
 
 
 def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
+
+    eps = 1e-12
     """ initialize the dissimilarity matrix with perplexity """
     P = x2p(X, 1e-5, perplexity)
     P = P + np.transpose(P)
     P = P / np.sum(P)
+    P = np.maximum(P, eps)
     print('P:', P.shape)
     # P = P * 4.  # early exaggeration
     # P = np.maximum(P, 1e-12)
@@ -98,26 +102,48 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
     num = -2. * np.dot(Y, Y.T)
     num = 1. / (1. + np.add(np.add(num, sum_Y).T, sum_Y))
     num[range(n), range(n)] = 0.
-    Q = num / np.sum(num)
-    print(Q)
+    Q1 = num / np.sum(num)
 
     """ pytorch Q matrix computation """
     Y = torch.from_numpy(Y).float().to(device)
-    Q = torch.cdist(Y.unsqueeze(0), Y.unsqueeze(0), p=2.0)[0]
-    print(Q)
-    return
+    diagonal_ones = torch.eye(n).to(device)
 
+    # Q = torch.cdist(Y.unsqueeze(0), Y.unsqueeze(0), p=2.0)[0] ** 2
+    # Q = 1. / (1 + Q) - diagonal_ones
+    # Q = Q / torch.sum(Q)
+    # print('err:', np.mean((Q.detach().cpu().numpy() - Q1) ** 2))
 
     P = torch.from_numpy(P).float().to(device)
-    optimizer = torch.optim.Adam([Y.requires_grad_()], lr=1e-3)
+    optimizer = torch.optim.Adam([Y.requires_grad_()], lr=1)
 
+    kl_loss = torch.nn.KLDivLoss(reduction="batchmean")
 
-
-    return
     for iter in tqdm(range(max_iter)):
         optimizer.zero_grad()
-        print('iter: {:}'.format(iter))
 
+        """ pytorch Q matrix computation """
+        Q = torch.cdist(Y.unsqueeze(0), Y.unsqueeze(0), p=2.0)[0] ** 2
+        Q = 1. / (1 + Q) - diagonal_ones
+        Q = Q / torch.sum(Q)
+        Q = torch.where(Q < eps, torch.ones_like(Q) * eps, Q)
+
+        """ kl divergence """
+        loss = kl_loss(P, Q)
+        loss.backward()
+        if iter % 100 == 0:
+            print('iter: {:}, loss: {:.4f}'.format(iter, loss.item()))
+        optimizer.step()
+
+    print('Y:', Y.shape, Y.min(), Y.max())
+    Y = Y.detach().cpu().numpy()
+    Y[:, 0] = (Y[:, 0] - Y[:, 0].min()) / (Y[:, 0].max() - Y[:, 0].min())
+    Y[:, 1] = (Y[:, 1] - Y[:, 1].min()) / (Y[:, 1].max() - Y[:, 1].min())
+    plt.figure(1)
+    plt.scatter(Y[:, 0], Y[:, 1], s=1)
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.gca().set_aspect('equal')
+    plt.show()
     return Y
 
 
