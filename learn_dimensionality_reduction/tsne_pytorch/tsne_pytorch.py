@@ -12,7 +12,7 @@ from torch.optim.optimizer import Optimizer, required
 import copy
 
 
-class AccSGD(Optimizer):
+class MomentumSGD(Optimizer):
     """
     Implements the algorithm proposed in https://arxiv.org/pdf/1704.08227.pdf, which is a provably accelerated method
     for stochastic optimization. This has been employed in https://openreview.net/forum?id=rJTutzbA- for training several
@@ -29,7 +29,7 @@ class AccSGD(Optimizer):
 
     def __init__(self, params, device=required, lr=required):
         defaults = dict(lr=lr)
-        super(AccSGD, self).__init__(params, defaults)
+        super(MomentumSGD, self).__init__(params, defaults)
 
         self.device = device
         self.initial_momentum = 0.5
@@ -43,7 +43,7 @@ class AccSGD(Optimizer):
         self.gains = torch.zeros((self.n, self.no_dims)).float().to(device)
 
     def __setstate__(self, state):
-        super(AccSGD, self).__setstate__(state)
+        super(MomentumSGD, self).__setstate__(state)
 
     def step(self, iter, closure=None):
         """ Performs a single optimization step.
@@ -216,7 +216,7 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
     P = torch.from_numpy(P).float().to(device)
     # optimizer = torch.optim.Adam([Y.requires_grad_()], lr=10)
     # optimizer = ADAMOptimizer([Y.requires_grad_()], lr=10)
-    optimizer = AccSGD([Y.requires_grad_()], device=device, lr=500)
+    optimizer = MomentumSGD([Y.requires_grad_()], device=device, lr=500)
 
     kl_loss = torch.nn.KLDivLoss(reduction="batchmean")
 
@@ -254,17 +254,17 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
         """ autodiff """
         optimizer.step(iter)
 
-        if iter % 100 == 0:
+        if (iter + 1) % 10 == 0:
             print('iter: {:}, loss: {:.4f}'.format(iter, loss.item()))
 
     print('Y:', Y.shape, Y.min(), Y.max())
     Y = Y.detach().cpu().numpy()
-    Y[:, 0] = (Y[:, 0] - Y[:, 0].min()) / (Y[:, 0].max() - Y[:, 0].min())
-    Y[:, 1] = (Y[:, 1] - Y[:, 1].min()) / (Y[:, 1].max() - Y[:, 1].min())
+    # Y[:, 0] = (Y[:, 0] - Y[:, 0].min()) / (Y[:, 0].max() - Y[:, 0].min())
+    # Y[:, 1] = (Y[:, 1] - Y[:, 1].min()) / (Y[:, 1].max() - Y[:, 1].min())
     plt.figure(1)
-    plt.scatter(Y[:, 0], Y[:, 1], s=1)
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
+    plt.scatter(Y[:, 0], Y[:, 1], s=20)
+    # plt.xlim([0, 1])
+    # plt.ylim([0, 1])
     plt.gca().set_aspect('equal')
     plt.show()
     return Y
