@@ -114,7 +114,7 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
     # print('err:', np.mean((Q.detach().cpu().numpy() - Q1) ** 2))
 
     P = torch.from_numpy(P).float().to(device)
-    optimizer = torch.optim.Adam([Y.requires_grad_()], lr=1)
+    optimizer = torch.optim.Adam([Y.requires_grad_()], lr=10)
 
     kl_loss = torch.nn.KLDivLoss(reduction="batchmean")
 
