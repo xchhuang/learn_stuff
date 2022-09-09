@@ -156,6 +156,8 @@ def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
 
         # Compute gradient
         PQ = P - Q
+        # print('PQ:', PQ)
+
         for i in range(n):
             dY[i, :] = np.sum(np.tile(PQ[:, i] * num[:, i], (no_dims, 1)).T * (Y[i, :] - Y), 0)
 

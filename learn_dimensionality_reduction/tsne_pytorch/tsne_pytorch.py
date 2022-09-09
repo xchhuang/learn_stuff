@@ -85,12 +85,12 @@ class AccSGD(Optimizer):
                     momentum = self.final_momentum
                 dY = d_p
                 # print('dY:', dY.shape, dY)
-                gains = (self.gains + 0.2) * ((dY > 0.) != (self.iY > 0.)) + (self.gains * 0.8) * ((dY > 0.) == (self.iY > 0.))
-                gains[gains < self.min_gain] = self.min_gain
+                self.gains = (self.gains + 0.2) * ((dY > 0.) != (self.iY > 0.)) + (self.gains * 0.8) * ((dY > 0.) == (self.iY > 0.))
+                self.gains[self.gains < self.min_gain] = self.min_gain
                 # print('gains_torch:', iY.shape, gains.shape, dY.shape)
-                iY = momentum * self.iY - self.eta * (gains * dY)
-                p.data.add_(iY)
-                p.data.add_(-torch.mean(p, 0).repeat(self.n, 1))
+                self.iY = momentum * self.iY - self.eta * (self.gains * dY)
+                p.data.add_(self.iY)
+                p.data.add_(-torch.mean(p.data, 0).repeat(self.n, 1))
 
         return loss
 
@@ -216,7 +216,7 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
     P = torch.from_numpy(P).float().to(device)
     # optimizer = torch.optim.Adam([Y.requires_grad_()], lr=10)
     # optimizer = ADAMOptimizer([Y.requires_grad_()], lr=10)
-    optimizer = AccSGD([Y.requires_grad_()], device=device, lr=0.1)
+    optimizer = AccSGD([Y.requires_grad_()], device=device, lr=500)
 
     kl_loss = torch.nn.KLDivLoss(reduction="batchmean")
 
@@ -230,8 +230,9 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
         Q = torch.where(Q < eps, torch.ones_like(Q) * eps, Q)
 
         """ kl divergence """
-        loss = kl_loss(P, Q)
+        # loss = kl_loss(P, Q)
         # loss = F.mse_loss(P, Q)
+        loss = torch.sum(P * torch.log(P / Q))
         loss.backward()
 
         """ manual update """
