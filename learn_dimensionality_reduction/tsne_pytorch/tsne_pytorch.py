@@ -80,7 +80,6 @@ def x2p(X=np.array([]), tol=1e-5, perplexity=30.0):
 
 
 def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
-
     eps = 1e-12
     """ initialize the dissimilarity matrix with perplexity """
     P = x2p(X, 1e-5, perplexity)
@@ -93,11 +92,21 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
 
     max_iter = 1000
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    n = X.shape[0]
+    # Y = np.random.rand(n, no_dims)
+    Y = np.random.randn(n, no_dims)
 
-    Y = np.random.rand(X.shape[0], no_dims)
+    """ momentum-based gradient descent """
+    initial_momentum = 0.5
+    final_momentum = 0.8
+    eta = 500
+    min_gain = 0.01
+    # dY = np.zeros((n, no_dims))
+    iY = torch.zeros((n, no_dims)).float().to(device)
+    gains = torch.ones((n, no_dims)).float().to(device)
 
     """ original numpy Q matrix computation """
-    n = X.shape[0]
+
     sum_Y = np.sum(np.square(Y), 1)
     num = -2. * np.dot(Y, Y.T)
     num = 1. / (1. + np.add(np.add(num, sum_Y).T, sum_Y))
@@ -106,6 +115,7 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
 
     """ pytorch Q matrix computation """
     Y = torch.from_numpy(Y).float().to(device)
+    Y.requires_grad = True
     diagonal_ones = torch.eye(n).to(device)
 
     # Q = torch.cdist(Y.unsqueeze(0), Y.unsqueeze(0), p=2.0)[0] ** 2
@@ -130,6 +140,34 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
         """ kl divergence """
         loss = kl_loss(P, Q)
         loss.backward()
+
+        with torch.no_grad():
+            if iter < 20:
+                momentum = initial_momentum
+            else:
+                momentum = final_momentum
+            dY = Y.grad
+            # print('dY:', dY.shape, dY)
+
+            gains = (gains + 0.2) * ((dY > 0.) != (iY > 0.)) + (gains * 0.8) * ((dY > 0.) == (iY > 0.))
+            gains[gains < min_gain] = min_gain
+
+            print('gains_torch:', iY.shape, gains.shape, dY.shape)
+
+            iY = momentum * iY - eta * (gains * dY)
+            Y = Y + iY
+            Y = Y - torch.mean(Y, 0).repeat(n, 1)
+            Y.grad = None
+
+        # # print('out_pts_grad:', out_pts.shape, out_pts.grad.shape, out_pts.grad.min(), out_pts.grad.max())
+        #     learning_rate = 0.1 / (np.sqrt(N) * torch.abs(out_pts.grad).max())
+        #     # learning_rate = torch.clamp(learning_rate, 0, 1)
+        #
+        #     out_pts -= learning_rate * out_pts.grad
+        #     # print(out_pts.shape, out_pts.data.shape)
+        #     out_pts.data = toroidalWrapAround_tr(out_pts.data)
+        #     out_pts.grad = None
+
         if iter % 100 == 0:
             print('iter: {:}, loss: {:.4f}'.format(iter, loss.item()))
         optimizer.step()

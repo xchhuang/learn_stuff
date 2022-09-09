@@ -15,6 +15,7 @@
 import numpy as np
 import pylab
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 
 def Hbeta(D=np.array([]), beta=1.0):
@@ -188,13 +189,16 @@ def main():
     print("Running example on 2,500 MNIST digits...")
     X = np.loadtxt("mnist2500_X.txt")
     labels = np.loadtxt("mnist2500_labels.txt")
-    X = np.load('D:/xhuang/phd/repo/deepsampling/src/scripts/results_cluster/results_v4_latent_n1000/features_vgg_v19.npz')['features'].astype(np.float32)
+    # X = np.load('D:/xhuang/phd/repo/deepsampling/src/scripts/results_cluster/results_v4_latent_n1000/features_vgg_v19.npz')['features'].astype(np.float32)
 
     Y = tsne(X, 2, 50, 20.0)
-    print('Y:', Y.shape)
+    # print('Y:', Y.shape)
     # pylab.scatter(Y[:, 0], Y[:, 1], 20, labels)
-    pylab.scatter(Y[:, 0], Y[:, 1], 20)
-    pylab.show()
+
+    plt.figure(1)
+    plt.scatter(Y[:, 0], Y[:, 1], c='b', s=20)
+    plt.gca().set_aspect('equal')
+    plt.show()
 
     return
 
