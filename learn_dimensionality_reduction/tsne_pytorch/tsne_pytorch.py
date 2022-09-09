@@ -4,6 +4,96 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+import torch
+from torch.optim import Optimizer
+import math
+
+from torch.optim.optimizer import Optimizer, required
+import copy
+
+
+class AccSGD(Optimizer):
+    """
+    Implements the algorithm proposed in https://arxiv.org/pdf/1704.08227.pdf, which is a provably accelerated method
+    for stochastic optimization. This has been employed in https://openreview.net/forum?id=rJTutzbA- for training several
+    deep learning models of practical interest. This code has been implemented by building on the construction of the SGD
+    optimization module found in pytorch codebase.
+    Args:
+        params (iterable): iterable of parameters to optimize or dicts defining
+            parameter groups
+        lr (float): learning rate (required)
+        kappa (float, optional): ratio of long to short step (default: 1000)
+        xi (float, optional): statistical advantage parameter (default: 10)
+        smallConst (float, optional): any value <=1 (default: 0.7)
+    """
+
+    def __init__(self, params, device=required, lr=required):
+        defaults = dict(lr=lr)
+        super(AccSGD, self).__init__(params, defaults)
+
+        self.device = device
+        self.initial_momentum = 0.5
+        self.final_momentum = 0.8
+        self.eta = lr
+        self.min_gain = 0.01
+        self.n = 2500
+        self.no_dims = 2
+        self.dY = torch.zeros((self.n, self.no_dims)).float().to(device)
+        self.iY = torch.zeros((self.n, self.no_dims)).float().to(device)
+        self.gains = torch.zeros((self.n, self.no_dims)).float().to(device)
+
+    def __setstate__(self, state):
+        super(AccSGD, self).__setstate__(state)
+
+    def step(self, iter, closure=None):
+        """ Performs a single optimization step.
+        Arguments:
+            closure (callable, optional): A closure that reevaluates the model
+                and returns the loss.
+        """
+        loss = None
+        if closure is not None:
+            loss = closure()
+
+        for group in self.param_groups:
+            # weight_decay = group['weight_decay']
+            # large_lr = (group['lr'] * group['kappa']) / (group['smallConst'])
+            # Alpha = 1.0 - ((group['smallConst'] * group['smallConst'] * group['xi']) / group['kappa'])
+            # Beta = 1.0 - Alpha
+            # zeta = group['smallConst'] / (group['smallConst'] + Beta)
+            for p in group['params']:
+                if p.grad is None:
+                    continue
+                d_p = p.grad.data
+                # if weight_decay != 0:
+                #     d_p.add_(weight_decay, p.data)
+                # param_state = self.state[p]
+                # if 'momentum_buffer' not in param_state:
+                #     param_state['momentum_buffer'] = copy.deepcopy(p.data)
+                # buf = param_state['momentum_buffer']
+                # buf.mul_((1.0 / Beta) - 1.0)
+                # buf.add_(-large_lr, d_p)
+                # buf.add_(p.data)
+                # buf.mul_(Beta)
+                # p.data.add_(-group['lr'], d_p)
+                # p.data.mul_(zeta)
+                # p.data.add_(1.0 - zeta, buf)
+
+                if iter < 20:
+                    momentum = self.initial_momentum
+                else:
+                    momentum = self.final_momentum
+                dY = d_p
+                # print('dY:', dY.shape, dY)
+                gains = (self.gains + 0.2) * ((dY > 0.) != (self.iY > 0.)) + (self.gains * 0.8) * ((dY > 0.) == (self.iY > 0.))
+                gains[gains < self.min_gain] = self.min_gain
+                # print('gains_torch:', iY.shape, gains.shape, dY.shape)
+                iY = momentum * self.iY - self.eta * (gains * dY)
+                p.data.add_(iY)
+                p.data.add_(-torch.mean(p, 0).repeat(self.n, 1))
+
+        return loss
+
 
 def Hbeta(D=np.array([]), beta=1.0):
     """
@@ -124,7 +214,9 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
     # print('err:', np.mean((Q.detach().cpu().numpy() - Q1) ** 2))
 
     P = torch.from_numpy(P).float().to(device)
-    optimizer = torch.optim.Adam([Y.requires_grad_()], lr=10)
+    # optimizer = torch.optim.Adam([Y.requires_grad_()], lr=10)
+    # optimizer = ADAMOptimizer([Y.requires_grad_()], lr=10)
+    optimizer = AccSGD([Y.requires_grad_()], device=device, lr=0.1)
 
     kl_loss = torch.nn.KLDivLoss(reduction="batchmean")
 
@@ -139,38 +231,30 @@ def tsne_pytorch(X, no_dims=2, initial_dims=50, perplexity=20.0):
 
         """ kl divergence """
         loss = kl_loss(P, Q)
+        # loss = F.mse_loss(P, Q)
         loss.backward()
 
-        with torch.no_grad():
-            if iter < 20:
-                momentum = initial_momentum
-            else:
-                momentum = final_momentum
-            dY = Y.grad
-            # print('dY:', dY.shape, dY)
+        """ manual update """
+        # with torch.no_grad():
+        #     if iter < 20:
+        #         momentum = initial_momentum
+        #     else:
+        #         momentum = final_momentum
+        #     dY = Y.grad
+        #     # print('dY:', dY.shape, dY)
+        #     # gains = (gains + 0.2) * ((dY > 0.) != (iY > 0.)) + (gains * 0.8) * ((dY > 0.) == (iY > 0.))
+        #     # gains[gains < min_gain] = min_gain
+        #     # print('gains_torch:', iY.shape, gains.shape, dY.shape)
+        #     iY = momentum * iY - eta * (gains * dY)
+        #     Y = Y + iY
+        #     Y = Y - torch.mean(Y, 0).repeat(n, 1)
+        #     Y.grad = None
 
-            gains = (gains + 0.2) * ((dY > 0.) != (iY > 0.)) + (gains * 0.8) * ((dY > 0.) == (iY > 0.))
-            gains[gains < min_gain] = min_gain
-
-            print('gains_torch:', iY.shape, gains.shape, dY.shape)
-
-            iY = momentum * iY - eta * (gains * dY)
-            Y = Y + iY
-            Y = Y - torch.mean(Y, 0).repeat(n, 1)
-            Y.grad = None
-
-        # # print('out_pts_grad:', out_pts.shape, out_pts.grad.shape, out_pts.grad.min(), out_pts.grad.max())
-        #     learning_rate = 0.1 / (np.sqrt(N) * torch.abs(out_pts.grad).max())
-        #     # learning_rate = torch.clamp(learning_rate, 0, 1)
-        #
-        #     out_pts -= learning_rate * out_pts.grad
-        #     # print(out_pts.shape, out_pts.data.shape)
-        #     out_pts.data = toroidalWrapAround_tr(out_pts.data)
-        #     out_pts.grad = None
+        """ autodiff """
+        optimizer.step(iter)
 
         if iter % 100 == 0:
             print('iter: {:}, loss: {:.4f}'.format(iter, loss.item()))
-        optimizer.step()
 
     print('Y:', Y.shape, Y.min(), Y.max())
     Y = Y.detach().cpu().numpy()
