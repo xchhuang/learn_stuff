@@ -88,6 +88,7 @@ def x2p(X=np.array([]), tol=1e-5, perplexity=30.0):
 
     # Return final P-matrix
     print("Mean value of sigma: %f" % np.mean(np.sqrt(1 / beta)))
+    print(D.shape, P.shape)
     return P
 
 
@@ -121,7 +122,8 @@ def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
         return -1
 
     # Initialize variables
-    X = pca(X, initial_dims).real
+    # X = pca(X, initial_dims).real     # TODO: PCA first or not
+
     (n, d) = X.shape
     max_iter = 1000
     initial_momentum = 0.5
