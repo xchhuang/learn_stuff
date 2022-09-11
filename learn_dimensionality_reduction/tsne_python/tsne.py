@@ -143,6 +143,7 @@ def tsne(X, init_Y, perplexity=20.0):
     P = P / np.sum(P)
     P = P * 4.  # early exaggeration
     P = np.maximum(P, 1e-12)
+    # print('P:', P)
 
     # Run iterations
     for iter in tqdm(range(max_iter)):
@@ -154,6 +155,7 @@ def tsne(X, init_Y, perplexity=20.0):
         num[range(n), range(n)] = 0.
         Q = num / np.sum(num)
         Q = np.maximum(Q, 1e-12)
+        # print('Q:', Q)
 
         # Compute gradient
         PQ = P - Q
@@ -161,6 +163,8 @@ def tsne(X, init_Y, perplexity=20.0):
 
         for i in range(n):
             dY[i, :] = np.sum(np.tile(PQ[:, i] * num[:, i], (no_dims, 1)).T * (Y[i, :] - Y), 0)
+
+        # print('dY:', dY)
 
         # Perform the update
         if iter < 20:
@@ -175,9 +179,10 @@ def tsne(X, init_Y, perplexity=20.0):
         Y = Y - np.tile(np.mean(Y, 0), (n, 1))
 
         # Compute current value of cost function
-        # if (iter + 1) % 10 == 0:
-        #     C = np.sum(P * np.log(P / Q))
-        #     print("Iteration %d: error is %f" % (iter + 1, C))
+        if (iter + 1) % 100 == 0:
+            C = np.sum(P * np.log(P / Q))
+            print("Iteration %d: error is %f" % (iter + 1, C))
+            # return
 
         # Stop lying about P-values
         if iter == 100:

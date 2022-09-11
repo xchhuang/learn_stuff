@@ -54,7 +54,7 @@ class MomentumSGD(Optimizer):
                     momentum = self.initial_momentum
                 else:
                     momentum = self.final_momentum
-                dY = d_p
+                dY = d_p / 4
                 # print('dY:', dY.shape, dY)
                 self.gains = (self.gains + 0.2) * ((dY > 0.) != (self.iY > 0.)) + (self.gains * 0.8) * ((dY > 0.) == (self.iY > 0.))
                 self.gains[self.gains < self.min_gain] = self.min_gain
@@ -150,8 +150,7 @@ def tsne_pytorch(X, init_Y, perplexity=20.0):
     P = P / np.sum(P)
     P = P * 4.
     P = np.maximum(P, eps)
-    # print('P:', P.shape)
-    # P = P * 4.  # early exaggeration
+    # print('P:', P)
 
     max_iter = 1000
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -168,13 +167,13 @@ def tsne_pytorch(X, init_Y, perplexity=20.0):
 
     """ pytorch Q matrix computation """
     Y = torch.from_numpy(Y).float().to(device)
-    diagonal_ones = torch.eye(n).to(device)
+    diagonal_ones = torch.eye(n).to(device).detach()
     # Q = torch.cdist(Y.unsqueeze(0), Y.unsqueeze(0), p=2.0)[0] ** 2
     # Q = 1. / (1 + Q) - diagonal_ones
     # Q = Q / torch.sum(Q)
     # print('err:', np.mean((Q.detach().cpu().numpy() - Q1) ** 2))
 
-    P = torch.from_numpy(P).float().to(device)
+    P = torch.from_numpy(P).float().to(device).detach()
     # optimizer = torch.optim.Adam([Y.requires_grad_()], lr=10)
     optimizer = MomentumSGD([Y.requires_grad_()], device=device, lr=500, n=n, no_dims=no_dims)
 
@@ -186,6 +185,7 @@ def tsne_pytorch(X, init_Y, perplexity=20.0):
         Q = 1. / (1 + Q) - diagonal_ones
         Q = Q / torch.sum(Q)
         Q = torch.where(Q < eps, torch.ones_like(Q) * eps, Q)
+        # print('Q:', Q)
 
         """ kl divergence """
         loss = torch.sum(P * torch.log(P / Q))
@@ -194,8 +194,10 @@ def tsne_pytorch(X, init_Y, perplexity=20.0):
         """ autodiff """
         optimizer.step(iter)
 
-        # if (iter + 1) % 10 == 0:
-        #     print('iter: {:}, loss: {:.4f}'.format(iter, loss.item()))
+        if (iter + 1) % 100 == 0:
+            C = loss.item()
+            print('iter: {:}, loss: {:.4f}'.format(iter + 1, C))
+            # return
 
         if iter == 100:
             P = P / 4.
