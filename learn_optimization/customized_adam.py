@@ -106,20 +106,17 @@ class CustomizedAdam(Optimizer):
         super(CustomizedAdam, self).__init__(params, defaults)
 
         self.device = device
-        self.initial_momentum = 0.5
-        self.final_momentum = 0.8
+        self.beta1 = 0.9
+        self.beta2 = 0.999
+        self.m = torch.zeros((n, no_dims)).float().to(device)
+        self.v = torch.zeros((n, no_dims)).float().to(device)
+        self.eps = 1e-8
         self.eta = lr
-        self.min_gain = 0.01
-        self.n = n
-        self.no_dims = no_dims
-        self.dY = torch.zeros((self.n, self.no_dims)).float().to(device)
-        self.iY = torch.zeros((self.n, self.no_dims)).float().to(device)
-        self.gains = torch.ones((self.n, self.no_dims)).float().to(device)
 
     def __setstate__(self, state):
-        super(MomentumSGD, self).__setstate__(state)
+        super(CustomizedAdam, self).__setstate__(state)
 
-    def step(self, closure=None):
+    def step(self, iter, closure=None):
         """ Performs a single optimization step.
         Arguments:
             closure (callable, optional): A closure that reevaluates the model
@@ -133,8 +130,13 @@ class CustomizedAdam(Optimizer):
             for p in group['params']:
                 if p.grad is None:
                     continue
-                d_p = p.grad.data
-                p.data = p.data - self.eta * d_p
+
+                g = p.grad.data
+                self.m = self.beta1 * self.m + (1 - self.beta1) * g
+                self.v = self.beta2 * self.v + (1 - self.beta2) * g * g
+                m_corrected = self.m / (1 - self.beta1 ** iter)
+                v_corrected = self.v / (1 - self.beta2 ** iter)
+                p.data = p.data - self.eta * m_corrected / (torch.sqrt(v_corrected) + self.eps)
 
         return loss
 

@@ -17,7 +17,7 @@ def main():
     loss_adam = []
     loss_customized_adam = []
     adam_opt = torch.optim.Adam([x1.requires_grad_()], lr=1e-3)
-    customized_adam_opt = CustomizedAdam([x2.requires_grad_()], device=device, lr=1e-1, n=400, no_dims=2)
+    customized_adam_opt = CustomizedAdam([x2.requires_grad_()], device=device, lr=1e-3, n=400, no_dims=2)
     epochs = 100
 
     for epoch in range(epochs):
@@ -33,9 +33,10 @@ def main():
         out = 2 * x2
         loss = F.mse_loss(out, target)
         loss.backward()
-        customized_adam_opt.step()
+        customized_adam_opt.step(epoch)
         loss_customized_adam.append(loss.item())
 
+    print(loss_adam, loss_customized_adam)
     plt.figure(1)
     plt.plot(loss_adam, 'b-')
     plt.plot(loss_customized_adam, 'g--')
