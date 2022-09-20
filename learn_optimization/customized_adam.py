@@ -99,6 +99,7 @@ from torch.optim.optimizer import Optimizer, required
 class CustomizedAdam(Optimizer):
     """
     customized momentum-based gradient descent following: https://lvdmaaten.github.io/tsne/
+    http://mcneela.github.io/machine_learning/2019/09/03/Writing-Your-Own-Optimizers-In-Pytorch.html
     """
 
     def __init__(self, params, device=required, lr=required, n=required, no_dims=required):
@@ -112,11 +113,12 @@ class CustomizedAdam(Optimizer):
         self.v = torch.zeros((n, no_dims)).float().to(device)
         self.eps = 1e-8
         self.eta = lr
+        self.iteration = 0
 
     def __setstate__(self, state):
         super(CustomizedAdam, self).__setstate__(state)
 
-    def step(self, iter, closure=None):
+    def step(self, closure=None):
         """ Performs a single optimization step.
         Arguments:
             closure (callable, optional): A closure that reevaluates the model
@@ -126,16 +128,18 @@ class CustomizedAdam(Optimizer):
         if closure is not None:
             loss = closure()
 
+        
         for group in self.param_groups:
             for p in group['params']:
                 if p.grad is None:
                     continue
-
+                self.iteration += 1
                 g = p.grad.data
                 self.m = self.beta1 * self.m + (1 - self.beta1) * g
                 self.v = self.beta2 * self.v + (1 - self.beta2) * g * g
-                m_corrected = self.m / (1 - self.beta1 ** iter)
-                v_corrected = self.v / (1 - self.beta2 ** iter)
+                
+                m_corrected = self.m / (1 - self.beta1 ** self.iteration)
+                v_corrected = self.v / (1 - self.beta2 ** self.iteration)
                 p.data = p.data - self.eta * m_corrected / (torch.sqrt(v_corrected) + self.eps)
 
         return loss

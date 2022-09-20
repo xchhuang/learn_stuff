@@ -20,9 +20,10 @@ def main():
     customized_adam_opt = CustomizedAdam([x2.requires_grad_()], device=device, lr=1e-3, n=400, no_dims=2)
     epochs = 100
 
+    constant_weight = 3
     for epoch in range(epochs):
         adam_opt.zero_grad()
-        out = 2 * x1
+        out = constant_weight * x1
         loss = F.mse_loss(out, target)
         loss.backward()
         adam_opt.step()
@@ -30,14 +31,17 @@ def main():
     
     for epoch in range(epochs):
         customized_adam_opt.zero_grad()
-        out = 2 * x2
+        out = constant_weight * x2
         loss = F.mse_loss(out, target)
         loss.backward()
-        customized_adam_opt.step(epoch)
+        customized_adam_opt.step()
         loss_customized_adam.append(loss.item())
 
-    print(loss_adam, loss_customized_adam)
+    # print('losses:', loss_adam, loss_customized_adam)
+
+    err = np.mean((np.array(loss_adam) - np.array(loss_customized_adam)) ** 2)
     plt.figure(1)
+    plt.title('error: {:.4f}'.format(err))
     plt.plot(loss_adam, 'b-')
     plt.plot(loss_customized_adam, 'g--')
     plt.show()
