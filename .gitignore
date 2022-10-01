@@ -50,3 +50,7 @@ learn_dimensionality_reduction/tsne_python/mnist2500_labels.txt
 learn_dimensionality_reduction/tsne_python/mnist2500_X.txt
 *.blend
 *.blend1
+*.exr
+scene
+scene/*
+*/scene/*
