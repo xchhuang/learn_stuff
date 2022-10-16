@@ -6,6 +6,7 @@
 # hpaulkeeler.com/simulating-a-matern-cluster-point-process/
 
 from configparser import RawConfigParser
+from os import replace
 import numpy as np;  # NumPy package for arrays, random number generation, etc
 import matplotlib.pyplot as plt  # For plotting
 from tqdm import tqdm
@@ -92,23 +93,29 @@ def main():
     radiusCluster = 0.1  # radius of cluster disk (for daughter points)
 
     num_realizations = 1000
+    count = 0
     for i in tqdm(range(num_realizations)):
         lambdaParent = 30 + np.random.rand() * (120 - 30)
         # lambdaParent = 300
         lambdaDaughter = int(1024 / lambdaParent)
-        radiusCluster = 0.05 + np.random.rand() * (0.2 - 0.05)
+        radiusCluster = 0.04 + np.random.rand() * (0.08 - 0.04)
         # radiusCluster = 0.2
         pts = run_matern_clustering(lambdaParent, lambdaDaughter, radiusCluster)
         if pts.shape[0] > 1024 and pts.shape[0] < 1050:
+            count += 1
             plt.figure(1)
             # plt.scatter(xx, yy, edgecolor='b', facecolor='none', alpha=0.5)
+            pts = pts[np.random.choice(pts.shape[0], 1024, replace=False)]
             plt.scatter(pts[:, 0], pts[:, 1], c='k', s=1)
             plt.xlim([0, 1])
             plt.ylim([0, 1])
             plt.gca().set_aspect('equal')
             plt.axis('off')
-            plt.savefig('results/{:0>5}'.format(i), bbox_inches='tight', pad_inches=0, dpi=200)
+            plt.savefig('results/{:0>5}.png'.format(count), bbox_inches='tight', pad_inches=0, dpi=200)
             plt.clf()
+
+            np.savetxt('results/{:0>5}.txt'.format(count), pts)
+    print('count =', count)
 
 if __name__ == '__main__':
     main()
