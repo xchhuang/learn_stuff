@@ -1,6 +1,10 @@
+// https://github.com/pybind/python_example
+
 #include <pybind11/pybind11.h>
 #include <iostream>
 #include <vector>
+#include <math.h>
+
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
@@ -8,15 +12,43 @@ int add(int i, int j) {
     return i + j;
 }
 
-// int precompute_boudanry(int N) {
-//     int nbbins=20;
-//     float n_rmax = 2.0;
+void precompute_boundary(int N) {
+    int nbbins=20;
+    float n_rmax = 2.0;
+    float rmax = 1.0;
+    int width = 256;
+    int height = 256;
+    float stepsize = n_rmax / nbbins;
+    // std::cout << "stepsize: " << stepsize << std::endl; 
+    std::vector<float> radii(nbbins, 1.0);
+    for (int i = 1; i < nbbins + 1; i++) {
+        radii[i] = i * stepsize * rmax;
+        // std::cout << "radii[i]: " << radii[i] << std::endl;
+    }
 
-//     std::vector<float> full_angle;
-//     for (int i=0; i<N; i++) {
-//         std::cout << i << std::endl;
-//     }
-// }
+    std::vector<float> full_angle(nbbins, 1.0);
+    std::vector<float> weights(nbbins, 0.0);
+
+    for (int i=0; i<width * height; i++) {
+        
+        for (int j=0; j<nbbins; j++) {
+            full_angle[j] = 1.0;
+            weights[j] = 0.0;    
+        }
+        float x = 0.01;
+        float y = 0.01;
+        float dx = x;
+        float dy = y;
+        for (int j = 0; j < nbbins; j++) {
+            if (radii[j] > dx) {
+                float alpha = acos(dx / radii[j]);
+                // std::cout << "alpha: " << alpha << std::endl;
+                // full_angle[j] -= std::min(alpha, atan2(dy, dx)) + std::min(alpha, atan2(1 - dy, dx));
+                full_angle[j] -= atan2(dy, dx) + atan2(1 - dy, dx);
+            }
+        }
+    }
+}
 
 namespace py = pybind11;
 
@@ -36,15 +68,17 @@ PYBIND11_MODULE(python_example, m) {
 
     m.def("add", &add, R"pbdoc(
         Add two numbers
-
         Some other explanation about the add function.
     )pbdoc");
 
     // m.def("subtract", [](int i, int j) { return i - j; }, R"pbdoc(
     //     Subtract two numbers
-
     //     Some other explanation about the subtract function.
     // )pbdoc");
+
+    m.def("precompute_boundary", &precompute_boundary, R"pbdoc(
+        Precompute the boundary term for PCF computation
+    )pbdoc");
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
