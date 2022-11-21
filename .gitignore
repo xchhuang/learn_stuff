@@ -61,3 +61,6 @@ restir.py
 .github
 .github/*
 */.github/*
+.vscode
+.vscode/*
+*/.vscode/*
