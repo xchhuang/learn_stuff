@@ -64,3 +64,6 @@ restir.py
 .vscode
 .vscode/*
 */.vscode/*
+results*
+results*/*
+*/results*/*
