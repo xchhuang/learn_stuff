@@ -55,3 +55,9 @@ scenes
 scenes/*
 */scenes/*
 restir.py
+.appveyor.yml
+.appveyor.yml/*
+*/.appveyor.yml/*
+.github
+.github/*
+*/.github/*
