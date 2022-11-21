@@ -10,6 +10,7 @@ from os import replace
 import numpy as np;  # NumPy package for arrays, random number generation, etc
 import matplotlib.pyplot as plt  # For plotting
 from tqdm import tqdm
+import os
 
 
 def run_matern_clustering(lambdaParent, lambdaDaughter, radiusCluster):
@@ -87,35 +88,50 @@ def run_matern_clustering(lambdaParent, lambdaDaughter, radiusCluster):
 
 
 def main():
+    output_folder = 'results'
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
 
-    lambdaParent = 20  # density of parent Poisson point process
-    lambdaDaughter = int(1024 / lambdaParent);  # mean number of points in each cluster
-    radiusCluster = 0.1  # radius of cluster disk (for daughter points)
+    # lambdaParent = 1024  # density of parent Poisson point process
+    lambdaParents = [1024, 512, 256, 128, 64, 32]
 
-    num_realizations = 1000
+    num_realizations = 1
     count = 0
-    for i in tqdm(range(num_realizations)):
-        lambdaParent = 30 + np.random.rand() * (120 - 30)
+    # for i in tqdm(range(num_realizations)):
+    for i, lambdaParent in enumerate(lambdaParents):
+
+        lambdaDaughter = int(1024 / lambdaParent)  # mean number of points in each cluster
+        # radiusCluster = 0.1  # radius of cluster disk (for daughter points)
+        rmax = 2 * np.sqrt(1.0 / (2 * np.sqrt(3) * 1024))
+        radiusCluster = 0.8 * rmax
+
+        # lambdaParent = 30 + np.random.rand() * (120 - 30)
         # lambdaParent = 300
-        lambdaDaughter = int(1024 / lambdaParent)
-        radiusCluster = 0.04 + np.random.rand() * (0.08 - 0.04)
-        # radiusCluster = 0.2
+        # lambdaDaughter = int(1024 / lambdaParent)
+        # lambdaDaughter = 2
+        # radiusCluster = 0.04 + np.random.rand() * (0.08 - 0.04)
+
+        # radiusCluster = 0.3
+
         pts = run_matern_clustering(lambdaParent, lambdaDaughter, radiusCluster)
-        if pts.shape[0] > 1024 and pts.shape[0] < 1050:
+
+        if True or (pts.shape[0] > 1024 and pts.shape[0] < 1050):
             count += 1
             plt.figure(1)
+            print('i: ', i, pts.shape[0])
             # plt.scatter(xx, yy, edgecolor='b', facecolor='none', alpha=0.5)
-            pts = pts[np.random.choice(pts.shape[0], 1024, replace=False)]
+            # pts = pts[np.random.choice(pts.shape[0], 1024, replace=False)]
             plt.scatter(pts[:, 0], pts[:, 1], c='k', s=1)
             plt.xlim([0, 1])
             plt.ylim([0, 1])
             plt.gca().set_aspect('equal')
             plt.axis('off')
-            plt.savefig('results/{:0>5}.png'.format(count), bbox_inches='tight', pad_inches=0, dpi=200)
+            plt.savefig('{:}/{:0>5}.png'.format(output_folder, count), bbox_inches='tight', pad_inches=0, dpi=200)
             plt.clf()
 
-            np.savetxt('results/{:0>5}.txt'.format(count), pts)
+            np.savetxt('{:}/{:0>5}.txt'.format(output_folder, count), pts)
     print('count =', count)
+
 
 if __name__ == '__main__':
     main()
