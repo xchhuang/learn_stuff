@@ -22,9 +22,28 @@ std::vector<float> precompute_boundary(int N) {
     float rmax = 1.0;
     int width = 256;
     int height = 256;
+    float bnd_x = 1.0 / (width + 1);
+    float bnd_y = 1.0 / (height + 1);
+    float step_x = 1.0 / width;
+    float step_y = 1.0 / height;
+    
+
+    std::vector<float> grid_pts;
+
+    for (int i = 0; i < width; i ++) {
+        float x_pos = bnd_x + step_x * i;
+        for (int j = 0; j < height; j++) {
+            float y_pos = bnd_y + step_y * j;
+            int index = i * height + j;
+            grid_pts.push_back(x_pos);
+            grid_pts.push_back(y_pos);
+        }
+    }
+
+    std::cout << grid_pts.size() << std::endl;
 
     std::vector<float> boundary_term;
-    for (int j=0; j<width * height; j++) {
+    for (int j = 0; j < width * height; j++) {
         boundary_term.push_back(0.0);
     }
 

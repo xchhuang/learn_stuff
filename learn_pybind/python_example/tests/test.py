@@ -11,15 +11,15 @@ import python_example as m
 start_time = time.time()
 bonndary_term = m.precompute_boundary(10)
 end_time = time.time()
-# print('===> Time: {:.4f}'.format(end_time - start_time))
+print('===> Time: {:.4f}'.format(end_time - start_time))
 # print('bonndary_term:', bonndary_term, len(bonndary_term))
 
 bonndary_term = np.array(bonndary_term).astype(np.float32)
 
 print('bonndary_term:', bonndary_term.shape)
 
-plt.figure(1)
-plt.imshow(bonndary_term.reshape((256, 256)))
-plt.show()
+# plt.figure(1)
+# plt.imshow(bonndary_term.reshape((256, 256)))
+# plt.show()
 
 
