@@ -1,4 +1,6 @@
+// References:
 // https://github.com/pybind/python_example
+
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -16,18 +18,16 @@ int add(int i, int j) {
     return i + j;
 }
 
-std::vector<float> precompute_boundary(int N) {
-    
-    int nbbins=20;
-    float n_rmax = 2.0;
-    float rmax = 1.0;
-    int width = 256;
-    int height = 256;
+std::vector<float> precompute_boundary(int N, int width, int height, int nbbins, int n_rmax) {
+    // int nbbins = 20;
+    // int n_rmax = 2;
+    float rmax = 2.0 * sqrt(1.0 / (2 * sqrt(3) * N));
+    // int width = 256;
+    // int height = 256;
     float bnd_x = 1.0 / (width + 1);
     float bnd_y = 1.0 / (height + 1);
-    float step_x = 1.0 / width;
-    float step_y = 1.0 / height;
-    
+    float step_x = bnd_x;
+    float step_y = bnd_y;
 
     std::vector<float> grid_pts;
 
@@ -36,6 +36,7 @@ std::vector<float> precompute_boundary(int N) {
         for (int j = 0; j < height; j++) {
             float y_pos = bnd_y + step_y * j;
             int index = i * height + j;
+            // std::cout << "xy: " << x_pos << " " << y_pos << std::endl;
             grid_pts.push_back(x_pos);
             grid_pts.push_back(y_pos);
         }
@@ -48,12 +49,13 @@ std::vector<float> precompute_boundary(int N) {
         boundary_term.push_back(0.0);
     }
 
-    float stepsize = n_rmax / nbbins;
-    // std::cout << "stepsize: " << stepsize << std::endl; 
+    float stepsize = (float)n_rmax / nbbins;
+    
+    // std::cout << "stepsize: " << stepsize << " " << rmax << std::endl; 
     std::vector<float> radii;
     for (int i = 1; i < nbbins + 1; i++) {
         radii.push_back(i * stepsize * rmax);
-        // std::cout << "radii[i]: " << radii[i] << std::endl;
+        // std::cout << "radii[i]: " << radii[i-1] << std::endl;
     }
 
     std::vector<float> full_angle(nbbins, 1.0);
@@ -62,7 +64,7 @@ std::vector<float> precompute_boundary(int N) {
     for (int i=0; i<width * height; i++) {
         
         for (int j=0; j<nbbins; j++) {
-            full_angle[j] = 1.0;
+            full_angle[j] = 2 * M_PI;
         }
         float x = grid_pts[i*2+0];
         float y = grid_pts[i*2+1];
