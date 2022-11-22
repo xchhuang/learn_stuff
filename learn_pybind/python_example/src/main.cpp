@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <algorithm>
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -62,10 +63,10 @@ std::vector<float> precompute_boundary(int N) {
         
         for (int j=0; j<nbbins; j++) {
             full_angle[j] = 1.0;
-            weights[j] = 0.0;    
         }
         float x = grid_pts[i*2+0];
         float y = grid_pts[i*2+1];
+
         float dx = x;
         float dy = y;
         for (int j = 0; j < nbbins; j++) {
@@ -103,7 +104,8 @@ std::vector<float> precompute_boundary(int N) {
         }
 
         for (int j = 0; j < nbbins; j++) {
-            full_angle[j] = full_angle[j] / (2 * M_PI);
+            float c = full_angle[j] / (2 * M_PI);
+            full_angle[j] = std::fmax(0, std::fmin(c, 1));    // clamp(x, 0, 1)
             if (full_angle[j] > 0) {
                 full_angle[j] = 1.0 / full_angle[j];
             }
