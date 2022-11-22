@@ -1,6 +1,10 @@
 python_example
 ==============
 
+## Run
+pip install ./python_example
+python python_example/tests/test.py
+
 [![Gitter][gitter-badge]][gitter-link]
 
 |      CI              | status |

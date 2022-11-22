@@ -1,6 +1,8 @@
 // https://github.com/pybind/python_example
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 #include <iostream>
 #include <vector>
 #include <math.h>
@@ -8,21 +10,29 @@
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
+
 int add(int i, int j) {
     return i + j;
 }
 
-void precompute_boundary(int N) {
+std::vector<float> precompute_boundary(int N) {
+    
     int nbbins=20;
     float n_rmax = 2.0;
     float rmax = 1.0;
     int width = 256;
     int height = 256;
+
+    std::vector<float> boundary_term;
+    for (int j=0; j<width * height; j++) {
+        boundary_term.push_back(0.0);
+    }
+
     float stepsize = n_rmax / nbbins;
     // std::cout << "stepsize: " << stepsize << std::endl; 
-    std::vector<float> radii(nbbins, 1.0);
+    std::vector<float> radii;
     for (int i = 1; i < nbbins + 1; i++) {
-        radii[i] = i * stepsize * rmax;
+        radii.push_back(i * stepsize * rmax);
         // std::cout << "radii[i]: " << radii[i] << std::endl;
     }
 
@@ -48,6 +58,7 @@ void precompute_boundary(int N) {
             }
         }
     }
+    return boundary_term;
 }
 
 namespace py = pybind11;
