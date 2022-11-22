@@ -40,10 +40,10 @@ std::vector<float> precompute_boundary(int N) {
         }
     }
 
-    std::cout << grid_pts.size() << std::endl;
+    // std::cout << grid_pts.size() << std::endl;
 
     std::vector<float> boundary_term;
-    for (int j = 0; j < width * height; j++) {
+    for (int j = 0; j < width * height * nbbins; j++) {
         boundary_term.push_back(0.0);
     }
 
@@ -64,18 +64,52 @@ std::vector<float> precompute_boundary(int N) {
             full_angle[j] = 1.0;
             weights[j] = 0.0;    
         }
-        float x = 0.01;
-        float y = 0.01;
+        float x = grid_pts[i*2+0];
+        float y = grid_pts[i*2+1];
         float dx = x;
         float dy = y;
         for (int j = 0; j < nbbins; j++) {
             if (radii[j] > dx) {
                 float alpha = acos(dx / radii[j]);
-                // std::cout << "alpha: " << alpha << std::endl;
-                // full_angle[j] -= std::min(alpha, atan2(dy, dx)) + std::min(alpha, atan2(1 - dy, dx));
-                full_angle[j] -= atan2(dy, dx) + atan2(1 - dy, dx);
+                full_angle[j] -= std::min(alpha, atan2(dy, dx)) + std::min(alpha, atan2(1 - dy, dx));
             }
         }
+
+        dx = 1 - x;
+        dy = y;
+        for (int j = 0; j < nbbins; j++) {
+            if (radii[j] > dx) {
+                float alpha = acos(dx / radii[j]);
+                full_angle[j] -= std::min(alpha, atan2(dy, dx)) + std::min(alpha, atan2(1 - dy, dx));
+            }
+        }
+
+        dx = y;
+        dy = x;
+        for (int j = 0; j < nbbins; j++) {
+            if (radii[j] > dx) {
+                float alpha = acos(dx / radii[j]);
+                full_angle[j] -= std::min(alpha, atan2(dy, dx)) + std::min(alpha, atan2(1 - dy, dx));
+            }
+        }
+
+        dx = 1 - y;
+        dy = x;
+        for (int j = 0; j < nbbins; j++) {
+            if (radii[j] > dx) {
+                float alpha = acos(dx / radii[j]);
+                full_angle[j] -= std::min(alpha, atan2(dy, dx)) + std::min(alpha, atan2(1 - dy, dx));
+            }
+        }
+
+        for (int j = 0; j < nbbins; j++) {
+            full_angle[j] = full_angle[j] / (2 * M_PI);
+            if (full_angle[j] > 0) {
+                full_angle[j] = 1.0 / full_angle[j];
+            }
+            boundary_term[i * nbbins + j] = full_angle[j];
+        }
+        
     }
     return boundary_term;
 }

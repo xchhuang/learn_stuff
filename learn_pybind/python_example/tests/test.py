@@ -18,8 +18,12 @@ bonndary_term = np.array(bonndary_term).astype(np.float32)
 
 print('bonndary_term:', bonndary_term.shape)
 
-# plt.figure(1)
-# plt.imshow(bonndary_term.reshape((256, 256)))
-# plt.show()
+bonndary_term = bonndary_term.reshape((256, 256, 20))
+plt.figure(1)
+plt.subplot(121)
+plt.imshow(bonndary_term[:, :, 0])
+plt.subplot(121)
+plt.imshow(bonndary_term[:, :, 1])
+plt.show()
 
 
