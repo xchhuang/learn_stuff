@@ -1,4 +1,6 @@
+// Reference:
 // https://github.com/pybind/python_example
+
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -11,10 +13,8 @@
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
+#define M_PI 3.14159265358979323846
 
-int add(int i, int j) {
-    return i + j;
-}
 
 std::vector<float> precompute_boundary(int N) {
     
@@ -128,19 +128,8 @@ PYBIND11_MODULE(python_example, m) {
         .. autosummary::
            :toctree: _generate
 
-           add
-           subtract
+           precompute_boundary
     )pbdoc";
-
-    m.def("add", &add, R"pbdoc(
-        Add two numbers
-        Some other explanation about the add function.
-    )pbdoc");
-
-    // m.def("subtract", [](int i, int j) { return i - j; }, R"pbdoc(
-    //     Subtract two numbers
-    //     Some other explanation about the subtract function.
-    // )pbdoc");
 
     m.def("precompute_boundary", &precompute_boundary, R"pbdoc(
         Precompute the boundary term for PCF computation
