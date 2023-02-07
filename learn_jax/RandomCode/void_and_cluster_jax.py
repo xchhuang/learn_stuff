@@ -76,7 +76,9 @@ def plotFFT(pattern):
     eps = 1e-12
     im = axs[2].imshow(np.log10(abs(np.fft.fftshift(np.fft.fft2(pattern - np.mean(pattern))/ pattern.shape[0]))+eps), vmin=-4, vmax=1)
     fig.colorbar(im, ax=axs[2], fraction=0.046, pad=0.04)
-    plt.show()
+    # plt.show()
+    plt.savefig('results/void_and_cluster_jax.png', dpi=300)
+    plt.clf()
 
 
 def main():
