@@ -3,7 +3,15 @@ import matplotlib.pyplot as plt
 import jax
 import jax.numpy as jnp
 import random
+import argparse
+from PIL import Image
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--seed', type=int, default=0, help='Random seed.')
+opt = parser.parse_args()
+
+random.seed(opt.seed)
+np.random.seed(opt.seed)
 
 
 def void_and_cluster(size, sigma = 1.9, seed_points_per_dim = -1):
@@ -82,7 +90,10 @@ def plotFFT(pattern):
 
 
 def main():
-    plotFFT(void_and_cluster(128))
+    pattern = void_and_cluster(128)
+    print('pattern:', pattern.shape, pattern.dtype, pattern.min(), pattern.max(), pattern.mean(), pattern.std())
+    Image.fromarray((pattern * 255).astype(np.uint8)).save('results/bnm_seed{:}.png',format(opt.seed))
+    # plotFFT(pattern)
 
 
 if __name__ == "__main__":

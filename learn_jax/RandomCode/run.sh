@@ -14,4 +14,6 @@ export CUDA_PATH=/usr/lib/cuda-${cuda_version}/
 
 # python tutorial.py
 
-python void_and_cluster_jax.py
+python void_and_cluster_jax.py --seed=0
+python void_and_cluster_jax.py --seed=1
+
