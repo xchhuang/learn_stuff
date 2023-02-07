@@ -92,7 +92,7 @@ def plotFFT(pattern):
 def main():
     pattern = void_and_cluster(128)
     print('pattern:', pattern.shape, pattern.dtype, pattern.min(), pattern.max(), pattern.mean(), pattern.std())
-    Image.fromarray((pattern * 255).astype(np.uint8)).save('results/bnm_seed{:}.png',format(opt.seed))
+    Image.fromarray((pattern * 255).astype(np.uint8)).save('results/bnm_seed{:}.png'.format(opt.seed))
     # plotFFT(pattern)
 
 
