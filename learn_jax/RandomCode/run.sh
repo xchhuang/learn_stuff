@@ -12,4 +12,6 @@ export PATH=/usr/lib/cuda-${cuda_version}/bin/:${PATH}
 export LD_LIBRARY_PATH=/usr/lib/cuda-${cuda_version}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 export CUDA_PATH=/usr/lib/cuda-${cuda_version}/
 
-python tutorial.py
+# python tutorial.py
+
+python void_and_cluster_jax.py
