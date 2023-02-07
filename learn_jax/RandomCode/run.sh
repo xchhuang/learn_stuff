@@ -3,7 +3,7 @@
 #SBATCH -t 1:00:00
 #SBATCH -o slurm_outputs/slurm-%j.out
 #SBATCH --gres gpu:1
-
+#SBATCH -a 0-300
 
 mkdir -p slurm_outputs
 
@@ -14,6 +14,6 @@ export CUDA_PATH=/usr/lib/cuda-${cuda_version}/
 
 # python tutorial.py
 
-python void_and_cluster_jax.py --seed=0
-python void_and_cluster_jax.py --seed=1
+# python void_and_cluster_jax.py --seed=0
+python void_and_cluster_jax.py --seed=${SLURM_ARRAY_TASK_ID}
 
