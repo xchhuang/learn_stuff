@@ -88,7 +88,7 @@ def plotFFT(pattern):
 
 
 def main():
-    res = 128
+    res = 32
 
     random.seed(opt.seed)
     np.random.seed(opt.seed)
