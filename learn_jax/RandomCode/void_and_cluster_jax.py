@@ -88,13 +88,13 @@ def plotFFT(pattern):
 
 
 def main():
+    res = 128
 
-    
     random.seed(opt.seed)
     np.random.seed(opt.seed)
 
     time_start = time.time()
-    pattern = void_and_cluster(128)
+    pattern = void_and_cluster(res)
     time_end = time.time()
     print('time cost: {:.2f} s'.format(time_end - time_start))
     print('pattern:', pattern.shape, pattern.dtype, pattern.min(), pattern.max(), pattern.mean(), pattern.std())
