@@ -3,7 +3,7 @@
 #SBATCH -t 1:00:00
 #SBATCH -o slurm_outputs/slurm-%j.out
 #SBATCH --gres gpu:1
-#SBATCH -a 0-2
+#SBATCH -a 1-10
 
 mkdir -p slurm_outputs
 
