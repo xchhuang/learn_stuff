@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -p gpu20
-#SBATCH -t 1:00:00
+#SBATCH -t 00:05:00
 #SBATCH -o slurm_outputs/slurm-%j.out
 #SBATCH --gres gpu:1
 #SBATCH -a 1-10
