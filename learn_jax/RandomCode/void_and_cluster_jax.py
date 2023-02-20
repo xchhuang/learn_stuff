@@ -97,8 +97,11 @@ def main():
     pattern = void_and_cluster(res)
     time_end = time.time()
     print('time cost: {:.2f} s'.format(time_end - time_start))
+    # print('pattern:', pattern.shape, pattern.dtype, pattern.min(), pattern.max(), pattern.mean(), pattern.std())
+    pattern = (pattern - pattern.mean()) / pattern.std()
     print('pattern:', pattern.shape, pattern.dtype, pattern.min(), pattern.max(), pattern.mean(), pattern.std())
     Image.fromarray((pattern * 255).astype(np.uint8)).save('results/bnm_seed{:0>5}.png'.format(opt.seed))
+    np.savez_compressed('results/bnm_seed{:0>5}.npz'.format(opt.seed), pattern=pattern)
     # plotFFT(pattern)
 
 
