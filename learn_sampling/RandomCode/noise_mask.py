@@ -14,9 +14,16 @@ def main():
     for _ in range(num_realizations):
         white_noise = np.random.randn(res, res)
 
-        white_fft = np.abs(np.fft.fftshift(np.fft.fft2(white_noise - np.mean(white_noise))/ white_noise.shape[0]))
-
-        white_filtered = np.fft.ifft(white_fft).real
+        # mu = np.mean(white_noise)
+        # white_noise_back = np.fft.ifft2(np.fft.fftshift(np.fft.fftshift(np.fft.fft2(white_noise - mu))) + mu).real
+        # print(white_noise.shape, white_noise_back.shape)
+        # err = np.sum((white_noise - white_noise_back) ** 2)
+        # print('err:', err)
+        
+        # white_fft = np.abs(np.fft.fftshift(np.fft.fft2(white_noise - np.mean(white_noise))/ white_noise.shape[0]))
+        white_fft = np.abs(np.fft.fftshift(np.fft.fft2(white_noise)))
+        
+        white_filtered = np.fft.ifft2(white_fft).real
         white_filtered_fft = np.abs(np.fft.fftshift(np.fft.fft2(white_filtered - np.mean(white_filtered))/ white_filtered.shape[0]))
 
         # white_fft = white_fft * mask
