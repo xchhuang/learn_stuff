@@ -4,9 +4,9 @@ import bisect
 from tqdm import tqdm
 
 
-def get_rmax(num_points):
-    y = 2.0 * np.sqrt(1.0 / (2.0 * np.sqrt(3.0) * num_points))
-    return y
+# def get_rmax(num_points):
+#     y = 2.0 * np.sqrt(1.0 / (2.0 * np.sqrt(3.0) * num_points))
+#     return y
 
 
 def getCDF(importance):
@@ -60,9 +60,6 @@ def ImportanceSamples(den, num_points):
     return pts
 
 
-
-
-
 def ImportanceSamplesBlue(den, num_points):
     pts = np.random.rand(1, 2)
 
@@ -105,33 +102,4 @@ def ImportanceSamplesBlue(den, num_points):
 
     pts = pts.astype(np.float32)
     pts[:, 1] = 1 - pts[:, 1]
-    return pts
-
-
-
-def blue(npts, mindist=0):
-    """
-    Generates well spaced points with an adaptative dart throw method
-    Output is similar to blue noise
-
-    Parameters
-    ----------
-    npts : number of points to generate
-    mindist : initial minimal accepted distance between points
-    """
-    if mindist == 0:
-        mindist = get_rmax(npts)
-    failcount = 0
-    pts = np.random.rand(1, 2)
-    while np.size(pts, 0) < npts:
-        pt = np.random.rand(1, 2)
-        if np.min(np.sum((pts - pt) ** 2, 1)) > mindist * mindist:
-            pts = np.vstack((pts, pt))
-            failcount = 0
-        else:
-            failcount += 1
-
-        if failcount > 100:
-            mindist = 0.999 * mindist
-            failcount = 0
     return pts

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import  sampling_utils
+from time import time
 
 
 def gauss2d(x, mu, sigma):
@@ -19,8 +20,17 @@ def main():
     
     den = (y - y.min()) / (y.max() - y.min())
     num_points = 1000
-    pts_white = sampling_utils.ImportanceSamples(den, num_points)
-    pts_blue = sampling_utils.ImportanceSamplesBlue(den, num_points)
+
+    for _ in range(10):
+        start_time1 = time()
+        # pts_white = sampling_utils.ImportanceSamples(den, num_points)
+        pts_white = np.random.randn(num_points, 2)
+        end_time1 = time()
+
+        start_time2 = time()
+        pts_blue = sampling_utils.ImportanceSamplesBlue(den, num_points)
+        end_time2 = time()
+        print('Time for sampling: {:.4f}, {:.4f}'.format(end_time1 - start_time1, end_time2 - start_time2))
 
     pts_white = (pts_white - 0.5) * 6
     pts_blue = (pts_blue - 0.5) * 6
