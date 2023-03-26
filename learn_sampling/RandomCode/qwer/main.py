@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import os
 
 
+# https://github.blog/2023-03-23-we-updated-our-rsa-ssh-host-key/
+
+
 class Dither():
     def __init__(self, path, algorithm=None, output=None):
         self.path = self.get_path(path)
