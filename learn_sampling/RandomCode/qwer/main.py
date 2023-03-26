@@ -140,6 +140,7 @@ def main():
         plt.imshow(pixel)
         plt.savefig('results_{}.png'.format(i))
         plt.clf()
+    print('done')
 
 
 if __name__ == "__main__":
