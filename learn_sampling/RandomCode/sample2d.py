@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import  sampling_utils
 from time import time
+from PIL import Image
 
 
 def gauss2d(x, mu, sigma):
@@ -10,15 +11,20 @@ def gauss2d(x, mu, sigma):
 
 
 def main():
-    res = 100
+    res = 256
     x = np.linspace(-3, 3, res)
     y = np.linspace(-3, 3, res)
     X, Y = np.meshgrid(x, y)
     grid = np.stack([X, Y], axis=-1).reshape(res * res, -1)
     y = gauss2d(grid, 0, 1).reshape(res, res)
-    print(y.shape, y.min(), y.max())
+    # print(y.shape, y.min(), y.max())
     
-    den = (y - y.min()) / (y.max() - y.min())
+    den = 1 - (y - y.min()) / (y.max() - y.min())
+    print(den.shape, den.min(), den.max())
+
+    Image.fromarray((den * 255).astype(np.uint8)).save('results/gauss2d.png')
+    return
+
     num_points = 1000
 
     for _ in range(10):
