@@ -184,7 +184,8 @@ def camera_rays(forward, view_size, fx=0.6):
 
 w, h = 640, 400
 pos0 = jp.float32([3.0, 5.0, 4.0])
-# ray_dir = camera_rays(-pos0, view_size=(w, h))
+print('pos0:', pos0)
+ray_dir = camera_rays(-pos0, view_size=(w, h))
 # sdf = partial(scene_sdf, balls)
 # hit_pos = jax.vmap(partial(raycast, sdf, pos0))(ray_dir)
 # print(hit_pos.shape)
