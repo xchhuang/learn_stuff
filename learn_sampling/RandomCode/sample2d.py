@@ -12,16 +12,22 @@ def gauss2d(x, mu, sigma):
 
 def main():
     res = 256
-    x = np.linspace(-3, 3, res)
-    y = np.linspace(-3, 3, res)
+    num_sigma = 1.5
+    x = np.linspace(-num_sigma, num_sigma, res)
+    y = np.linspace(-num_sigma, num_sigma, res)
     X, Y = np.meshgrid(x, y)
     grid = np.stack([X, Y], axis=-1).reshape(res * res, -1)
     y = gauss2d(grid, 0, 1).reshape(res, res)
-    # print(y.shape, y.min(), y.max())
+    print(y.shape, y.min(), y.max())
     
-    den = 1 - (y - y.min()) / (y.max() - y.min())
+    # den = 1 - (y - y.min()) / (y.max() - y.min())
+    den = 1 - y / y.max()
+    # den = 0.4 - y
+    # den = den / den.max()
+    den_scale = den * 255
+    print(den_scale.shape, den_scale.min(), den_scale.max())
     print(den.shape, den.min(), den.max())
-
+    
     Image.fromarray((den * 255).astype(np.uint8)).save('results/gauss2d.png')
     return
 
