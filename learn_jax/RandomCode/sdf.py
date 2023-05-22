@@ -10,7 +10,7 @@ import PIL
 import numpy as np
 import matplotlib.pylab as pl
 
-from IPython.display import display, Image, HTML
+# from IPython.display import display, Image, HTML
 
 #@title jax utils
 import jax
@@ -39,64 +39,64 @@ def imencode(a, fmt='jpeg'):
   imwrite(f, a, fmt)
   return f.getvalue()
 
-def imshow(a, fmt='jpeg', display=display):
-  return display(Image(data=imencode(a, fmt)))
+# def imshow(a, fmt='jpeg', display=display):
+#   return display(Image(data=imencode(a, fmt)))
 
-class VideoWriter:
-  def __init__(self, filename='_autoplay.mp4', fps=30.0):
-    self.ffmpeg = None
-    self.filename = filename
-    self.fps = fps
-    self.view = display(display_id=True)
-    self.last_preview_time = 0.0
+# class VideoWriter:
+#   def __init__(self, filename='_autoplay.mp4', fps=30.0):
+#     self.ffmpeg = None
+#     self.filename = filename
+#     self.fps = fps
+#     self.view = display(display_id=True)
+#     self.last_preview_time = 0.0
 
-  def add(self, img):
-    img = np.asarray(img)
-    h, w = img.shape[:2]
-    if self.ffmpeg is None:
-      self.ffmpeg = self._open(w, h)
-    if img.dtype in [np.float32, np.float64]:
-      img = np.uint8(img.clip(0, 1)*255)
-    if len(img.shape) == 2:
-      img = np.repeat(img[..., None], 3, -1)
-    self.ffmpeg.stdin.write(img.tobytes())
-    t = time.time()
-    if self.view and t-self.last_preview_time > 1:
-       self.last_preview_time = t
-       imshow(img, display=self.view.update)
+#   def add(self, img):
+#     img = np.asarray(img)
+#     h, w = img.shape[:2]
+#     if self.ffmpeg is None:
+#       self.ffmpeg = self._open(w, h)
+#     if img.dtype in [np.float32, np.float64]:
+#       img = np.uint8(img.clip(0, 1)*255)
+#     if len(img.shape) == 2:
+#       img = np.repeat(img[..., None], 3, -1)
+#     self.ffmpeg.stdin.write(img.tobytes())
+#     t = time.time()
+#     if self.view and t-self.last_preview_time > 1:
+#        self.last_preview_time = t
+#        imshow(img, display=self.view.update)
     
-  def __call__(self, img):
-    return self.add(img)
+#   def __call__(self, img):
+#     return self.add(img)
     
-  def _open(self, w, h):
-    cmd = f'''ffmpeg -y -f rawvideo -vcodec rawvideo -s {w}x{h}
-      -pix_fmt rgb24 -r {self.fps} -i - -pix_fmt yuv420p 
-      -c:v libx264 -crf 20 {self.filename}'''.split()
-    return subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+#   def _open(self, w, h):
+#     cmd = f'''ffmpeg -y -f rawvideo -vcodec rawvideo -s {w}x{h}
+#       -pix_fmt rgb24 -r {self.fps} -i - -pix_fmt yuv420p 
+#       -c:v libx264 -crf 20 {self.filename}'''.split()
+#     return subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
-  def close(self):
-    if self.ffmpeg:
-        self.ffmpeg.stdin.close()
-        self.ffmpeg.wait()
-        self.ffmpeg = None
+#   def close(self):
+#     if self.ffmpeg:
+#         self.ffmpeg.stdin.close()
+#         self.ffmpeg.wait()
+#         self.ffmpeg = None
 
-  def __enter__(self):
-    return self
+#   def __enter__(self):
+#     return self
 
-  def __exit__(self, *kw):
-    self.close()
-    if self.filename == '_autoplay.mp4':
-      self.show()
+#   def __exit__(self, *kw):
+#     self.close()
+#     if self.filename == '_autoplay.mp4':
+#       self.show()
 
-  def show(self):
-      self.close()
-      if not self.view:
-        return
-      b64 = base64.b64encode(open(self.filename, 'rb').read()).decode('utf8')
-      s = f'''<video controls loop>
- <source src="data:video/mp4;base64,{b64}" type="video/mp4">
- Your browser does not support the video tag.</video>'''
-      self.view.update(HTML(s))
+#   def show(self):
+#       self.close()
+#       if not self.view:
+#         return
+#       b64 = base64.b64encode(open(self.filename, 'rb').read()).decode('utf8')
+#       s = f'''<video controls loop>
+#  <source src="data:video/mp4;base64,{b64}" type="video/mp4">
+#  Your browser does not support the video tag.</video>'''
+#       self.view.update(HTML(s))
 
 
 # def animate(f, duration_sec, fps=60):
@@ -184,7 +184,7 @@ def camera_rays(forward, view_size, fx=0.6):
 
 w, h = 640, 400
 pos0 = jp.float32([3.0, 5.0, 4.0])
-ray_dir = camera_rays(-pos0, view_size=(w, h))
+# ray_dir = camera_rays(-pos0, view_size=(w, h))
 # sdf = partial(scene_sdf, balls)
 # hit_pos = jax.vmap(partial(raycast, sdf, pos0))(ray_dir)
 # print(hit_pos.shape)
