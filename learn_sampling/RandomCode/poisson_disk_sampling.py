@@ -3,7 +3,7 @@ import math
 import time
 import matplotlib.pyplot as plt
 
-NUM_SAMPLES = 100
+NUM_SAMPLES = 1024
 DIM = 2
 
 poissonDiskSamples = np.zeros((NUM_SAMPLES, DIM))
@@ -63,6 +63,19 @@ def main():
     plt.gca().set_aspect('equal')
     plt.show()
 
+    pds = poissonDiskSamples * 2 - 1
+    x_prime = pds[:, 0] * np.sqrt(1 - pds[:, 1] ** 2 / 2)
+    y_prime = pds[:, 1] * np.sqrt(1 - pds[:, 0] ** 2 / 2)
+
+    plt.figure(2)
+    plt.subplot(121)
+    plt.scatter(x_prime, y_prime, s=10)
+    plt.gca().set_aspect('equal')
+    plt.subplot(122)
+    plt.scatter(pds[:, 0], pds[:, 1], s=10)
+    plt.gca().set_aspect('equal')
+    plt.show()
+    
 
 if __name__ == '__main__':
     main()
