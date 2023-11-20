@@ -70,5 +70,5 @@ results*/*
 .godot*
 .godot*/*
 */.godot*/*
-*/icon.svg.import
-*/icon.svg
+*/*/icon.svg.import
+*/*/icon.svg
