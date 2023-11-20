@@ -1,0 +1,53 @@
+[gd_scene load_steps=8 format=3 uid="uid://bmocd4y01qx5q"]
+
+[ext_resource type="PackedScene" uid="uid://cyvadnl70hgk3" path="res://player.tscn" id="1_rxy0m"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_tnpgv"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_552d5"]
+sky_material = SubResource("ProceduralSkyMaterial_tnpgv")
+
+[sub_resource type="Environment" id="Environment_nr56t"]
+background_mode = 2
+sky = SubResource("Sky_552d5")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_4hiax"]
+size = Vector2(10, 10)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_6cjvw"]
+data = PackedVector3Array(5, 0, 5, -5, 0, 5, 5, 0, -5, -5, 0, 5, -5, 0, -5, 5, 0, -5)
+
+[sub_resource type="SphereMesh" id="SphereMesh_uvkm1"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_nr56t")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.913737, 0.406306, 0, -0.406306, 0.913737, 2.08165e-12, 2.55575, 4.35093)
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, -1.28013)
+mesh = SubResource("PlaneMesh_4hiax")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Floor"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_6cjvw")
+
+[node name="Player" parent="." instance=ExtResource("1_rxy0m")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2, -2)
+linear_damp = 2.5
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.63533, 0.604457, -1.50134)
+mesh = SubResource("SphereMesh_uvkm1")
