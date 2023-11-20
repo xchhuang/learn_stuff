@@ -67,3 +67,7 @@ restir.py
 results*
 results*/*
 */results*/*
+.godot*
+.godot*/*
+*/.godot*/*
+
