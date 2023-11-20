@@ -70,5 +70,8 @@ results*/*
 .godot*
 .godot*/*
 */.godot*/*
-*/*/icon.svg.import
-*/*/icon.svg
+learn_gd/cbox/icon.svg.import
+learn_gd/cbox/icon.svg
+learn_gd/movement/icon.svg.import
+learn_gd/movement/icon.svg
+
