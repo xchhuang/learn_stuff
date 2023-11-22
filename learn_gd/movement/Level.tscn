@@ -1,5 +1,6 @@
-[gd_scene load_steps=9 format=3 uid="uid://bmocd4y01qx5q"]
+[gd_scene load_steps=11 format=3 uid="uid://bmocd4y01qx5q"]
 
+[ext_resource type="Shader" path="res://Level.gdshader" id="1_h1gn0"]
 [ext_resource type="PackedScene" uid="uid://cyvadnl70hgk3" path="res://player.tscn" id="1_rxy0m"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_tnpgv"]
@@ -17,13 +18,19 @@ glow_enabled = true
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_4hiax"]
 size = Vector2(10, 10)
+subdivide_width = 4
+subdivide_depth = 4
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0e4k3"]
+render_priority = 0
+shader = ExtResource("1_h1gn0")
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_6cjvw"]
 data = PackedVector3Array(5, 0, 5, -5, 0, 5, 5, 0, -5, -5, 0, 5, -5, 0, -5, 5, 0, -5)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_2fqr4"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_er5bt"]
+[sub_resource type="SphereMesh" id="SphereMesh_k0ke3"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -35,11 +42,12 @@ transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.913737, 0.406306, 0, -0.406306, 0.913737, 2.08165e-12, 2.55575, 4.35093)
+transform = Transform3D(1, 0, 0, 0, 0.939788, 0.341758, 0, -0.341758, 0.939788, 2.08165e-12, 4.596, 4.35093)
 
 [node name="Floor" type="MeshInstance3D" parent="."]
 transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, -1.28013)
 mesh = SubResource("PlaneMesh_4hiax")
+surface_material_override/0 = SubResource("ShaderMaterial_0e4k3")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Floor"]
 
@@ -51,10 +59,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2, -2)
 linear_damp = 2.5
 
 [node name="Ball" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.347573, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.24422, 1.5086, 0)
+linear_damp = 1.5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ball"]
 shape = SubResource("SphereShape3D_2fqr4")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ball/CollisionShape3D"]
-mesh = SubResource("SphereMesh_er5bt")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ball"]
+mesh = SubResource("SphereMesh_k0ke3")
