@@ -258,6 +258,7 @@ class GPT(nn.Module):
         return optimizer
 
     def forward(self, idx, targets=None):
+        # print('idx:', idx.shape)    # [B, 11]
         device = idx.device
         b, t = idx.size()
         assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
@@ -267,10 +268,14 @@ class GPT(nn.Module):
         tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
         x = self.transformer.drop(tok_emb + pos_emb)
+        # print('x:', x.shape)
         for block in self.transformer.h:
             x = block(x)
+        # print('x:', x.shape)
         x = self.transformer.ln_f(x)
+        # print('x:', x.shape)
         logits = self.lm_head(x)
+        # print('logits:', logits.shape)
 
         # if we are given some desired targets also calculate the loss
         loss = None

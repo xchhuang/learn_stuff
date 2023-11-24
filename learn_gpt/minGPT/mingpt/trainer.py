@@ -89,6 +89,8 @@ class Trainer:
             batch = [t.to(self.device) for t in batch]
             x, y = batch
 
+            # print('xy:', x.shape, y.shape)    [B, 11]
+
             # forward the model
             logits, self.loss = model(x, y)
 
