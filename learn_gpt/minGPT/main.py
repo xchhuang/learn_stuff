@@ -55,6 +55,7 @@ class SortDataset(Dataset):
                 break # ok
         
         # solve the task: i.e. sort
+        # print('inp:', inp)
         sol = torch.sort(inp)[0]
 
         # concatenate the problem specification and the solution
@@ -126,7 +127,7 @@ def main():
 
     train_config = Trainer.get_default_config()
     train_config.learning_rate = 5e-4 # the model we're using is so small that we can go a bit faster
-    train_config.max_iters = 2000
+    train_config.max_iters = 20   # 2000
     train_config.num_workers = 0
     trainer = Trainer(train_config, model, train_dataset)
 
@@ -154,6 +155,7 @@ def main():
     assert inp[0].nelement() == n
     with torch.no_grad():
         cat = model.generate(inp, n, do_sample=False)
+        # print('cat:', cat)
         sol = torch.sort(inp[0])[0]
         sol_candidate = cat[:, n:]
         print('input sequence  :', inp.tolist())
@@ -164,4 +166,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    pass
     
