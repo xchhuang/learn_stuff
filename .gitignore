@@ -75,3 +75,7 @@ learn_gd/cbox/icon.svg
 learn_gd/movement/icon.svg.import
 learn_gd/movement/icon.svg
 
+
+scenes*
+scenes*/*
+*/scenes*/*
