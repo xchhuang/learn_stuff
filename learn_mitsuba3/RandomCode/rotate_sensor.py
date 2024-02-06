@@ -5,17 +5,27 @@ mi.set_variant(variants[0])
 from mitsuba import ScalarTransform4f as T
 import numpy as np
 from tqdm import tqdm
+import os
 
 scene_name = 'teapot'    # rover, teapot
-spp = 16
+spp = 64
 max_depth = 2
-
+res = 512
 scene = mi.load_file("../scenes/{:}/scene.xml".format(scene_name))
 
 
+output_folder = 'results'
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+
+
 def main():
-        
-    for angle_y in tqdm([0, 35, 70, 105, 140, 175, 210, 245, 280, 315]):
+    
+    # angle_y_list = np.arange(0, 360, 30)
+    angle_y_list = [0, 1, 2]
+    print('angle_y_list:', angle_y_list)
+
+    for seed, angle_y in enumerate(tqdm(angle_y_list)):
         # camera_origin = T.rotate([0, 1, 0], 70).rotate([1, 0, 0], 30).translate([0.0, 23.0, 12.0]) @ mi.ScalarPoint3f(0, 0, 0)
         camera_origin = T.rotate([0, 1, 0], angle_y).rotate([1, 0, 0], 30).translate([0.0, 19.0, 10.0]) @ mi.ScalarPoint3f(0, 0, 0)
 
@@ -46,8 +56,8 @@ def main():
             },
             'film': {
                 'type': 'hdrfilm',
-                'width': 256,
-                'height': 256,
+                'width': res,
+                'height': res,
                 'rfilter': {
                     'type': 'tent',
                 },
@@ -61,12 +71,12 @@ def main():
         })
 
 
-        img = mi.render(scene, spp=spp, sensor=sensor2, integrator=integrator2)
+        img = mi.render(scene, spp=spp, sensor=sensor2, integrator=integrator2, seed=seed)
         img = mi.Bitmap(img)
 
         # mi.Bitmap(img).write('{:}.ext'.format(scene_name))
         img = img.convert(mi.Bitmap.PixelFormat.RGB, mi.Struct.Type.UInt8, True)
-        img.write('{:}_{:}.png'.format(scene_name, angle_y))
+        img.write('{:}/{:}_{:}.png'.format(output_folder, scene_name, angle_y))
 
 
 
