@@ -10,22 +10,22 @@ import drjit as dr
 
 
 # scene = mi.load_file('../scenes/cbox/scene.xml')
-# scene = mi.load_file/('../scenes/teapot/scene.xml')
+scene = mi.load_file('../scenes/teapot/scene.xml')
 
-scene = mi.load_dict(mi.cornell_box())
+# scene = mi.load_dict(mi.cornell_box())
 
 
 
 
 # Camera origin in world space
-cam_origin = mi.Point3f(0, 0.9, 3)
-# cam_origin = T.rotate([0, 1, 0], 30).rotate([1, 0, 0], 30).translate([0.0, 19.0, 10.0]) @ mi.ScalarPoint3f(0, 0, 0)
+# cam_origin = mi.Point3f(0, 0.9, 3)
+cam_origin = T.rotate([0, 1, 0], 30).rotate([1, 0, 0], 30).translate([0.0, 19.0, 10.0]) @ mi.ScalarPoint3f(0, 0, 0)
 
 
 # Camera view direction in world space
-cam_dir = dr.normalize(mi.Vector3f(0, -0.5, -1))
-# target=[0, 2, 0]
-# cam_dir = dr.normalize(target - cam_origin)
+# cam_dir = dr.normalize(mi.Vector3f(0, -0.5, -1))
+target=[0, 2, 0]
+cam_dir = dr.normalize(target - cam_origin)
 
 
 # Camera width and height in world space
