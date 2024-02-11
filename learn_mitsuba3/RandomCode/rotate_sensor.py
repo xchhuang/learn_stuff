@@ -6,12 +6,27 @@ from mitsuba import ScalarTransform4f as T
 import numpy as np
 from tqdm import tqdm
 import os
+import platform
+
+
+print(platform.system())
 
 scene_name = 'teapot'    # rover, teapot
-spp = 64
-max_depth = 2
-res = 512
 scene = mi.load_file("../scenes/{:}/scene.xml".format(scene_name))
+
+
+if platform.system() == 'Windows':
+    spp = 64
+    max_depth = 2
+    res = 512
+    angle_y_list = [0, 1, 2]
+elif platform.system() in ['Darwin']:
+    spp = 16
+    max_depth = 2
+    res = 256
+    angle_y_list = [0]
+else:
+    raise ValueError('Unknown platform')
 
 
 output_folder = 'results'
@@ -22,7 +37,7 @@ if not os.path.exists(output_folder):
 def main():
     
     # angle_y_list = np.arange(0, 360, 30)
-    angle_y_list = [0, 1, 2]
+    # angle_y_list = [0, 1, 2]
     print('angle_y_list:', angle_y_list)
 
     for seed, angle_y in enumerate(tqdm(angle_y_list)):
@@ -51,7 +66,7 @@ def main():
             'to_world': mi.ScalarTransform4f.look_at(target=[0, 2, 0], origin=camera_origin, up=[0, 1, 0]),
 
             'sampler': {
-                'type': 'independent',
+                'type': 'stratified',
                 'sample_count': spp
             },
             'film': {
@@ -71,7 +86,7 @@ def main():
         })
 
 
-        img = mi.render(scene, spp=spp, sensor=sensor2, integrator=integrator2, seed=seed)
+        img = mi.render(scene, spp=spp, sensor=sensor2, integrator=integrator2, seed=seed) # seed=seed or seed=0
         img = mi.Bitmap(img)
 
         # mi.Bitmap(img).write('{:}.ext'.format(scene_name))

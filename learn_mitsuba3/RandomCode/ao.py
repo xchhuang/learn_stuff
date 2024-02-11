@@ -7,25 +7,33 @@ mi.set_variant(variants[2])
 from mitsuba import ScalarTransform4f as T
 
 import drjit as dr
+import numpy as np
+import torch
+from collections import defaultdict
+from tqdm import tqdm
 
+seed = 0
+np.random.seed(seed)
+torch.manual_seed(seed)
 
 # scene = mi.load_file('../scenes/cbox/scene.xml')
-scene = mi.load_file('../scenes/teapot/scene.xml')
+# scene = mi.load_file('../scenes/teapot/scene.xml')
 
-# scene = mi.load_dict(mi.cornell_box())
+scene = mi.load_dict(mi.cornell_box())
 
 
 
 
 # Camera origin in world space
-# cam_origin = mi.Point3f(0, 0.9, 3)
-cam_origin = T.rotate([0, 1, 0], 30).rotate([1, 0, 0], 30).translate([0.0, 19.0, 10.0]) @ mi.ScalarPoint3f(0, 0, 0)
+cam_origin = mi.Point3f(0, 0.9, 3)
+# cam_origin = T.rotate([0, 1, 0], 30).rotate([1, 0, 0], 30).translate([0.0, 19.0, 10.0]) @ mi.ScalarPoint3f(0, 0, 0)
 
 
 # Camera view direction in world space
-# cam_dir = dr.normalize(mi.Vector3f(0, -0.5, -1))
 target=[0, 2, 0]
-cam_dir = dr.normalize(target - cam_origin)
+
+cam_dir = dr.normalize(mi.Vector3f(0, -0.5, -1))
+# cam_dir = dr.normalize(target - cam_origin)
 
 
 # Camera width and height in world space
@@ -34,7 +42,7 @@ cam_height = 2.0
 
 # Image pixel resolution
 image_res = [256, 256]
-
+n_pixels = dr.prod(image_res)
 
 # Construct a grid of 2D coordinates
 x, y = dr.meshgrid(
@@ -44,27 +52,42 @@ x, y = dr.meshgrid(
 
 # Ray origin in local coordinates
 ray_origin_local = mi.Vector3f(x, y, 0)
-
 # Ray origin in world coordinates
 ray_origin = mi.Frame3f(cam_dir).to_world(ray_origin_local) + cam_origin
 
 
 ray = mi.Ray3f(o=ray_origin, d=cam_dir)
-
+# print(ray)
 si = scene.ray_intersect(ray)
-
 
 ambient_range = 0.75
 ambient_ray_count = 16
 
 
 # Initialize the random number generator
-rng = mi.PCG32(size=dr.prod(image_res))
+rng = mi.PCG32(size=n_pixels)
+
+
+# sample_1, sample_2 = rng.next_float32(), rng.next_float32()
+# print(sample_1[0:10], sample_1)
+# sample_1[:] = np.random.rand(image_res[0]*image_res[1])
+# sample_2[:] = np.random.rand(image_res[0]*image_res[1])
+# sample_1, sample_2 = rng.next_float32(), rng.next_float32()
+# print(sample_1[0:10])
+
+# samples_1 = []
+# samples_2 = []
+samples_1 = dr.zeros(mi.Float, ambient_ray_count*image_res[0]*image_res[1])
+samples_2 = dr.zeros(mi.Float, ambient_ray_count*image_res[0]*image_res[1])
+for i in tqdm(range(ambient_ray_count)):
+    samples_1[i*image_res[0]*image_res[1]:(i+1)*image_res[0]*image_res[1]] = np.random.rand(image_res[0]*image_res[1])
+    samples_2[i*image_res[0]*image_res[1]:(i+1)*image_res[0]*image_res[1]] = np.random.rand(image_res[0]*image_res[1])
 
 
 
 # Loop iteration counter
 i = mi.UInt32(0)
+j = dr.arange(mi.UInt32, 0, n_pixels)
 
 # Accumulated result
 result = mi.Float(0)
@@ -72,10 +95,13 @@ result = mi.Float(0)
 # Initialize the loop state (listing all variables that are modified inside the loop)
 loop = mi.Loop(name="", state=lambda: (rng, i, result))
 
-while loop(si.is_valid() & (i < ambient_ray_count)):
-    # 1. Draw some random numbers
-    sample_1, sample_2 = rng.next_float32(), rng.next_float32()
 
+while loop(si.is_valid() & (i < ambient_ray_count)):
+    
+    # 1. Draw some random numbers
+    # sample_1, sample_2 = rng.next_float32(), rng.next_float32()
+    sample_1 = dr.gather(mi.Float, samples_1, i * n_pixels + j)
+    sample_2 = dr.gather(mi.Float, samples_2, i * n_pixels + j)
     # 2. Compute directions on the hemisphere using the random numbers
     wo_local = mi.warp.square_to_uniform_hemisphere([sample_1, sample_2])
 
@@ -93,13 +119,12 @@ while loop(si.is_valid() & (i < ambient_ray_count)):
 
     # 6. Accumulate a value of 1 if not occluded (0 otherwise)
     result[~scene.ray_test(ray_2)] += 1.0
-
+    # result[si.is_valid() & (i < ambient_ray_count)] += si.t
     # 7. Increase loop iteration counter
     i += 1
 
 # Divide the result by the number of samples
 result = result / ambient_ray_count
-
 
 
 image = mi.TensorXf(result, shape=image_res)
