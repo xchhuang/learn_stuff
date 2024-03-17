@@ -170,48 +170,49 @@ def main():
     vertices_batch = triangles_from_grid(create_mesh_grid(65, 65)).to(device)
     # print('vertices_batch:', vertices_batch.shape, vertices_batch.min(), vertices_batch.max())
     
-    small_batch = 64
-    image_batch = 0
-    num_triangles = 2
-    iterations = int(vertices_batch.shape[0] // num_triangles)
-    # image_batch = torch.zeros_like(mipmap[-1])   
-    image_batch = []
-    for i in tqdm(range(0, iterations, small_batch)):
-        # print(i, i+small_batch)
-        cur_vertices_batch1 = vertices_batch[i:i+small_batch]*16
-        cur_vertices_batch2 = vertices_batch[i+iterations:i+iterations+small_batch]*16
-        # print(i, i+small_batch, vertices_batch.shape[0], iterations)
-        # print(i+iterations, i+iterations+small_batch, vertices_batch.shape[0], iterations)
-        
-        # print(cur_vertices_batch.shape, cur_vertices_batch.min(), cur_vertices_batch.max())
-        cur_mask1 = rasterize_triangles_batch(cur_vertices_batch1, mesh_grids[0], base_res, base_res)
-        cur_mask2 = rasterize_triangles_batch(cur_vertices_batch2, mesh_grids[0], base_res, base_res)
-        # cur_mask_cat = torch.cat([cur_mask1, cur_mask2], dim=0).view(small_batch, 2, base_res, base_res)
-        # print('cur_mask1:', cur_mask1.shape)
-        # cur_mask = cur_mask1.bool() | cur_mask2.bool()
-        cur_mask = torch.stack([cur_mask1, cur_mask2], dim=0)
-        # print('cur_mask:', cur_mask.shape)
-        interleaved = cur_mask.permute(1, 0, 2, 3).flatten(0, 1).view(small_batch, 2, base_res, base_res)
-        interleaved = torch.any(interleaved, 1)
-        # print('interleaved:', interleaved.shape)
-        
-        result = interleaved.float() * mipmap[0].unsqueeze(0)
-        result = torch.sum(result, (1, 2)) / np.sqrt(16)
-        # print('result:', result.shape)
-        
-        image_batch.append(result)
-    
-    image_batch = torch.stack(image_batch, dim=0).view(64, 64)
-
     if False:
-        # image_batch_sum = torch.sum(image_batch, dim=0)
-        plt.figure(1)
-        plt.imshow(image_batch.detach().cpu().numpy(), cmap='gray')
-        plt.show()
+        small_batch = 64
+        image_batch = 0
+        num_triangles = 2
+        iterations = int(vertices_batch.shape[0] // num_triangles)
+        # image_batch = torch.zeros_like(mipmap[-1])   
+        image_batch = []
+        for i in tqdm(range(0, iterations, small_batch)):
+            # print(i, i+small_batch)
+            cur_vertices_batch1 = vertices_batch[i:i+small_batch]*16
+            cur_vertices_batch2 = vertices_batch[i+iterations:i+iterations+small_batch]*16
+            # print(i, i+small_batch, vertices_batch.shape[0], iterations)
+            # print(i+iterations, i+iterations+small_batch, vertices_batch.shape[0], iterations)
+            
+            # print(cur_vertices_batch.shape, cur_vertices_batch.min(), cur_vertices_batch.max())
+            cur_mask1 = rasterize_triangles_batch(cur_vertices_batch1, mesh_grids[0], base_res, base_res)
+            cur_mask2 = rasterize_triangles_batch(cur_vertices_batch2, mesh_grids[0], base_res, base_res)
+            # cur_mask_cat = torch.cat([cur_mask1, cur_mask2], dim=0).view(small_batch, 2, base_res, base_res)
+            # print('cur_mask1:', cur_mask1.shape)
+            # cur_mask = cur_mask1.bool() | cur_mask2.bool()
+            cur_mask = torch.stack([cur_mask1, cur_mask2], dim=0)
+            # print('cur_mask:', cur_mask.shape)
+            interleaved = cur_mask.permute(1, 0, 2, 3).flatten(0, 1).view(small_batch, 2, base_res, base_res)
+            interleaved = torch.any(interleaved, 1)
+            # print('interleaved:', interleaved.shape)
+            
+            result = interleaved.float() * mipmap[0].unsqueeze(0)
+            result = torch.sum(result, (1, 2)) / np.sqrt(16)
+            # print('result:', result.shape)
+            
+            image_batch.append(result)
+        
+        image_batch = torch.stack(image_batch, dim=0).view(64, 64)
+
+        if True:
+            # image_batch_sum = torch.sum(image_batch, dim=0)
+            plt.figure(1)
+            plt.imshow(image_batch.detach().cpu().numpy(), cmap='gray')
+            plt.show()
 
     # mipmap_base = mipmap[-1]
     # z = upsample_noise(mipmap_base.unsqueeze(0).unsqueeze(0), 16).squeeze(0).squeeze(0)
-
+    z = mipmap[-1]
     if False:
         z = z.detach().cpu().numpy()
         plt.figure(1)
@@ -234,25 +235,45 @@ def main():
     # transport
     if True:
         cur_mesh_grid = mesh_grids[-1]
-        prev_mesh_grid = cur_mesh_grid.clone()  # must clone
-        res = cur_mesh_grid.shape[-1]
+        next_mesh_grid = cur_mesh_grid.clone()  # must clone
+        # res = cur_mesh_grid.shape[-1]
         # print('prev_mesh_grid:', prev_mesh_grid.shape, cur_mesh_grid.shape)
+        
+        plt.figure(1)
         for i in range(20):
-            prev_mesh_grid[:, :, 0:1] = cur_mesh_grid[:, :, 0:1] - alpha
-            plt.figure(1)
-            plt.scatter(prev_mesh_grid[..., 0].cpu().numpy(), prev_mesh_grid[..., 1].cpu().numpy(), s=1, c='r')
-            plt.scatter(cur_mesh_grid[..., 0].cpu().numpy(), cur_mesh_grid[..., 1].cpu().numpy(), s=1, c='b')
-            plt.gca().set_aspect('equal', adjustable='box')
-            plt.show()
+
+            if True:
+                plt.subplot(111)
+                if i == 0:
+                    plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
+                else:
+                    plt.imshow(next_mask.detach().cpu().numpy(), cmap='gray')
+                # plt.subplot(122)
+                # plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
+                # plt.show()
+                plt.pause(0.25)
+
+            next_mesh_grid[:, :, 0:1] = next_mesh_grid[:, :, 0:1] - alpha
+            next_mesh_grid_norm = (next_mesh_grid / 64 - 0.5) * 2.0
+            next_mask = F.grid_sample(mipmap[-1].unsqueeze(0).unsqueeze(0), next_mesh_grid_norm.unsqueeze(0), mode='bilinear', align_corners=True).squeeze(0).squeeze(0)
+
+            if False:
+                plt.figure(1)
+                plt.scatter(next_mesh_grid[..., 0].cpu().numpy(), next_mesh_grid[..., 1].cpu().numpy(), s=1, c='r')
+                plt.scatter(cur_mesh_grid[..., 0].cpu().numpy(), cur_mesh_grid[..., 1].cpu().numpy(), s=1, c='b')
+                plt.gca().set_aspect('equal', adjustable='box')
+                plt.show()
+
+            
 
         
 
 
     # linear interpolation
-    if False:
+    if True:
         z = mipmap[-1].detach().cpu().numpy()
         plt.figure(1)
-        for i in tqdm(range(20)):
+        for i in tqdm(range(2)):
             
             plt.imshow(z, cmap='gray')
             
