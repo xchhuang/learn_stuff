@@ -55,6 +55,7 @@ scenes
 scenes/*
 */scenes/*
 restir.py
+
 .appveyor.yml
 .appveyor.yml/*
 */.appveyor.yml/*
@@ -74,8 +75,8 @@ learn_gd/cbox/icon.svg.import
 learn_gd/cbox/icon.svg
 learn_gd/movement/icon.svg.import
 learn_gd/movement/icon.svg
-
-
+learn_sampling/RandomCode/noise_transport.py
+learn_sampling/RandomCode/image2video.py
 scenes*
 scenes*/*
 */scenes*/*

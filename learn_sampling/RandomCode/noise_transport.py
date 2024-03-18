@@ -137,40 +137,11 @@ def upsample_noise(X, N):
     return X / N + Z - Z_mean
 
 
-def main():
 
-    alpha = 0.8
-    mipmap_levels = [1, 2, 4, 8, 16]
-    base_res = 1024
 
-    mipmap = []
-    high_res_map = create_a_circle(base_res)
-    # high_res_map = torch.randn(base_res, base_res).float().to(device)
-    # high_res_map = np.asarray(Image.open('../../../siren-pytorch/data/0.png').convert('L').resize((base_res, base_res))).astype(np.float32) / 255.0
-    # high_res_map = torch.from_numpy(high_res_map).to(device)
 
-    mesh_grids = []
-
-    # plt.figure(1)
-    for i in range(len(mipmap_levels)):
-        x = F.interpolate(high_res_map.unsqueeze(0).unsqueeze(0), scale_factor=1/mipmap_levels[i], mode='bilinear').squeeze(0).squeeze(0)
-        mipmap.append(x)
-
-        mesh_grids.append(create_mesh_grid(x.shape[0], x.shape[1]))
-    #     plt.subplot(1, len(mipmap_levels), i+1)
-    #     plt.imshow(x.cpu().numpy(), cmap='gray')
-    # plt.show()
-        
-    
-    # vertices_batch = torch.tensor([
-    #     [[10.0, 10.0], [50.0, 10.0], [30.0, 40.0]],
-    #     [[210.0, 210.0], [250.0, 210.0], [230.0, 240.0]]
-    # ]).to(device)   # Shape: (num_triangles, num_triangle_vertices=3, xy_coordinates=2)
-
-    vertices_batch = triangles_from_grid(create_mesh_grid(65, 65)).to(device)
-    # print('vertices_batch:', vertices_batch.shape, vertices_batch.min(), vertices_batch.max())
-    
-    if False:
+def algo(vertices_batch, mesh_grids, base_res, mipmap):
+    if True:
         small_batch = 64
         image_batch = 0
         num_triangles = 2
@@ -204,11 +175,93 @@ def main():
         
         image_batch = torch.stack(image_batch, dim=0).view(64, 64)
 
-        if True:
+        if False:
             # image_batch_sum = torch.sum(image_batch, dim=0)
             plt.figure(1)
             plt.imshow(image_batch.detach().cpu().numpy(), cmap='gray')
             plt.show()
+
+        return image_batch
+    
+
+def main():
+
+    alpha = 0.8
+    mipmap_levels = [1, 2, 4, 8, 16]
+    base_res = 1024
+
+    mipmap = []
+    high_res_map = create_a_circle(base_res)
+    # high_res_map = torch.randn(base_res, base_res).float().to(device)
+    # high_res_map = np.asarray(Image.open('../../../siren-pytorch/data/0.png').convert('L').resize((base_res, base_res))).astype(np.float32) / 255.0
+    # high_res_map = torch.from_numpy(high_res_map).to(device)
+
+    mesh_grids = []
+
+    # plt.figure(1)
+    for i in range(len(mipmap_levels)):
+        x = F.interpolate(high_res_map.unsqueeze(0).unsqueeze(0), scale_factor=1/mipmap_levels[i], mode='bilinear').squeeze(0).squeeze(0)
+        mipmap.append(x)
+
+        mesh_grids.append(create_mesh_grid(x.shape[0], x.shape[1]))
+    #     plt.subplot(1, len(mipmap_levels), i+1)
+    #     plt.imshow(x.cpu().numpy(), cmap='gray')
+    # plt.show()
+        
+    
+    # vertices_batch = torch.tensor([
+    #     [[10.0, 10.0], [50.0, 10.0], [30.0, 40.0]],
+    #     [[210.0, 210.0], [250.0, 210.0], [230.0, 240.0]]
+    # ]).to(device)   # Shape: (num_triangles, num_triangle_vertices=3, xy_coordinates=2)
+
+    vertices_batch = triangles_from_grid(create_mesh_grid(65, 65)).to(device)
+    # image_batch = algo(vertices_batch, mesh_grids, base_res, mipmap)
+    
+    # print('vertices_batch:', vertices_batch.shape, vertices_batch.min(), vertices_batch.max())
+    
+    # if True:
+    #     small_batch = 64
+    #     image_batch = 0
+    #     num_triangles = 2
+    #     iterations = int(vertices_batch.shape[0] // num_triangles)
+    #     # image_batch = torch.zeros_like(mipmap[-1])   
+    #     image_batch = []
+    #     for i in tqdm(range(0, iterations, small_batch)):
+    #         # print(i, i+small_batch)
+    #         cur_vertices_batch1 = vertices_batch[i:i+small_batch]*16
+    #         cur_vertices_batch2 = vertices_batch[i+iterations:i+iterations+small_batch]*16
+    #         # print(i, i+small_batch, vertices_batch.shape[0], iterations)
+    #         # print(i+iterations, i+iterations+small_batch, vertices_batch.shape[0], iterations)
+            
+    #         # print(cur_vertices_batch.shape, cur_vertices_batch.min(), cur_vertices_batch.max())
+    #         cur_mask1 = rasterize_triangles_batch(cur_vertices_batch1, mesh_grids[0], base_res, base_res)
+    #         cur_mask2 = rasterize_triangles_batch(cur_vertices_batch2, mesh_grids[0], base_res, base_res)
+    #         # cur_mask_cat = torch.cat([cur_mask1, cur_mask2], dim=0).view(small_batch, 2, base_res, base_res)
+    #         # print('cur_mask1:', cur_mask1.shape)
+    #         # cur_mask = cur_mask1.bool() | cur_mask2.bool()
+    #         cur_mask = torch.stack([cur_mask1, cur_mask2], dim=0)
+    #         # print('cur_mask:', cur_mask.shape)
+    #         interleaved = cur_mask.permute(1, 0, 2, 3).flatten(0, 1).view(small_batch, 2, base_res, base_res)
+    #         interleaved = torch.any(interleaved, 1)
+    #         # print('interleaved:', interleaved.shape)
+            
+    #         result = interleaved.float() * mipmap[0].unsqueeze(0)
+    #         result = torch.sum(result, (1, 2)) / np.sqrt(16)
+    #         # print('result:', result.shape)
+            
+    #         image_batch.append(result)
+        
+    #     image_batch = torch.stack(image_batch, dim=0).view(64, 64)
+
+    #     if True:
+    #         # image_batch_sum = torch.sum(image_batch, dim=0)
+    #         plt.figure(1)
+    #         plt.imshow(image_batch.detach().cpu().numpy(), cmap='gray')
+    #         plt.show()
+
+
+    
+
 
     # mipmap_base = mipmap[-1]
     # z = upsample_noise(mipmap_base.unsqueeze(0).unsqueeze(0), 16).squeeze(0).squeeze(0)
@@ -232,6 +285,7 @@ def main():
     # return
     
 
+    method = 'interpolation'    # 'transport', 'interpolation'
     # transport
     if True:
         cur_mesh_grid = mesh_grids[-1]
@@ -239,24 +293,63 @@ def main():
         # res = cur_mesh_grid.shape[-1]
         # print('prev_mesh_grid:', prev_mesh_grid.shape, cur_mesh_grid.shape)
         
-        plt.figure(1)
+        
         for i in range(20):
 
-            if True:
-                plt.subplot(111)
-                if i == 0:
-                    plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
-                else:
+
+            if method == 'transport':
+
+                next_mask = algo(vertices_batch, mesh_grids, base_res, mipmap)
+
+                if True:
+                    plt.figure(1)
+                    plt.subplot(111)
+                    # if i == 0:
+                    #     plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
+                    # else:
                     plt.imshow(next_mask.detach().cpu().numpy(), cmap='gray')
-                # plt.subplot(122)
-                # plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
-                # plt.show()
-                plt.pause(0.25)
+                    # plt.subplot(122)
+                    # plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
+                    # plt.show()
+                    # plt.pause(0.25)
+                    plt.savefig('results/{}_{:0>5}.png'.format(method, i), bbox_inches='tight', pad_inches=0.0, dpi=300)
+                    plt.clf()
+                
+                vertices_batch[:, :, 0:1] = vertices_batch[:, :, 0:1] - alpha
+                # print('vertices_batch:', vertices_batch.shape)
+                
 
-            next_mesh_grid[:, :, 0:1] = next_mesh_grid[:, :, 0:1] - alpha
-            next_mesh_grid_norm = (next_mesh_grid / 64 - 0.5) * 2.0
-            next_mask = F.grid_sample(mipmap[-1].unsqueeze(0).unsqueeze(0), next_mesh_grid_norm.unsqueeze(0), mode='bilinear', align_corners=True).squeeze(0).squeeze(0)
+            elif method == 'interpolation':
+                
+                next_mesh_grid_norm = (next_mesh_grid / 64 - 0.5) * 2.0
+                # if i == 0:
+                cur_mipmap = mipmap[0].unsqueeze(0).unsqueeze(0)
+                #     next_mask = F.grid_sample(cur_mipmap, next_mesh_grid_norm.unsqueeze(0), mode='bilinear', align_corners=True).squeeze(0).squeeze(0)
+                # else:
+                next_mask = F.grid_sample(cur_mipmap, next_mesh_grid_norm.unsqueeze(0), mode='bilinear', align_corners=True).squeeze(0).squeeze(0)
+                # next_mask = F.grid_sample(cur_mipmap, next_mesh_grid_norm.unsqueeze(0), mode='nearest', align_corners=True).squeeze(0).squeeze(0)
 
+                if True:
+                    plt.figure(1)
+                    plt.subplot(111)
+                    # if i == 0:
+                    #     plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
+                    # else:
+                    plt.imshow(next_mask.detach().cpu().numpy(), cmap='gray')
+                    # plt.subplot(122)
+                    # plt.imshow(mipmap[-1].detach().cpu().numpy(), cmap='gray')
+                    # plt.show()
+                    # plt.pause(0.25)
+                    plt.savefig('results/{}_{:0>5}.png'.format(method, i), bbox_inches='tight', pad_inches=0.0, dpi=300)
+                    plt.clf()
+
+                
+                next_mesh_grid[:, :, 0:1] = next_mesh_grid[:, :, 0:1] - alpha
+
+
+            else:
+                raise ValueError('Unknown method')
+            
             if False:
                 plt.figure(1)
                 plt.scatter(next_mesh_grid[..., 0].cpu().numpy(), next_mesh_grid[..., 1].cpu().numpy(), s=1, c='r')
@@ -270,7 +363,7 @@ def main():
 
 
     # linear interpolation
-    if True:
+    if False:
         z = mipmap[-1].detach().cpu().numpy()
         plt.figure(1)
         for i in tqdm(range(2)):
