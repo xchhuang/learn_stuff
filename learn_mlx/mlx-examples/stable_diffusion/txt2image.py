@@ -80,7 +80,9 @@ if __name__ == "__main__":
     # Decode them into images
     decoded = []
     for i in tqdm(range(0, args.n_images, args.decoding_batch_size)):
-        decoded.append(sd.decode(x_t[i : i + args.decoding_batch_size]))
+        dec = sd.decode(x_t[i : i + args.decoding_batch_size])
+        print('dec:', i, dec.shape)
+        decoded.append(dec)
         mx.eval(decoded[-1])
     peak_mem_overall = mx.metal.get_peak_memory() / 1024**3
 
